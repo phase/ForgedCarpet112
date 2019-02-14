@@ -19,9 +19,10 @@ public abstract class MixinBlockShulkerBox extends BlockContainer {
     }
 
     // [FCM] Stackable empty shulker boxes - if statement around a single line of code
-    @Redirect(method = "breakBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;setTagCompound(Lnet/minecraft/nbt/NBTTagCompound;)V"))
-    private void ifSetTagCompound(ItemStack itemStack, NBTTagCompound nbt){
-        if(!CarpetSettings.getBool("stackableEmptyShulkerBoxes") || nbt.getCompoundTag("BlockEntityTag").getSize() > 0)
+    @Redirect(method = "breakBlock", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/item/ItemStack;setTagCompound(Lnet/minecraft/nbt/NBTTagCompound;)V"))
+    private void ifSetTagCompound(ItemStack itemStack, NBTTagCompound nbt) {
+        if (!CarpetSettings.getBool("stackableEmptyShulkerBoxes") || nbt.getCompoundTag("BlockEntityTag").getSize() > 0)
             itemStack.setTagCompound(nbt);
     }
 }

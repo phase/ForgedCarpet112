@@ -20,17 +20,15 @@ public abstract class MixinEntityThrowable extends Entity {
     private TrajectoryLogHelper logHelper = null;
 
     @Inject(method = "<init>(Lnet/minecraft/world/World;)V", at = @At(value = "RETURN"))
-    private void onEntityThrowable(World worldIn, CallbackInfo ci){
-        if (LoggerRegistry.__projectiles)
-        {
+    private void onEntityThrowable(World worldIn, CallbackInfo ci) {
+        if (LoggerRegistry.__projectiles) {
             logHelper = new TrajectoryLogHelper("projectiles");
         }
     }
 
     @Inject(method = "onUpdate", at = @At(value = "RETURN"))
-    private void onOnUpdate(CallbackInfo ci){
-        if (LoggerRegistry.__projectiles && logHelper != null)
-        {
+    private void onOnUpdate(CallbackInfo ci) {
+        if (LoggerRegistry.__projectiles && logHelper != null) {
             logHelper.onTick(posX, posY, posZ, motionX, motionY, motionZ);
         }
     }

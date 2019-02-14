@@ -32,16 +32,14 @@ public abstract class MixinBlockHopper extends BlockContainer {
      * @author DeadlyMC
      */
     @Overwrite
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer)
-    {
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
         EnumFacing enumfacing = facing.getOpposite();
         // [FCM] Start
         if (BlockRotator.flippinEligibility(placer))
             enumfacing = enumfacing.getOpposite();
         // [FCM] End
 
-        if (enumfacing == EnumFacing.UP)
-        {
+        if (enumfacing == EnumFacing.UP) {
             enumfacing = EnumFacing.DOWN;
         }
 

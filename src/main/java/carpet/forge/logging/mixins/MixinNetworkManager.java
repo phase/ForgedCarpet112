@@ -15,12 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinNetworkManager {
 
     @Inject(method = "channelRead0", at = @At(value = "HEAD"))
-    private void packetTotalIn(ChannelHandlerContext p_channelRead0_1_, Packet<?> p_channelRead0_2_, CallbackInfo ci){
+    private void packetTotalIn(ChannelHandlerContext p_channelRead0_1_, Packet<?> p_channelRead0_2_, CallbackInfo ci) {
         PacketCounter.totalIn++;
     }
 
     @Inject(method = "dispatchPacket", at = @At(value = "HEAD"))
-    private void packetTotalOut(Packet<?> inPacket, GenericFutureListener<? extends Future<? super Void>>[] futureListeners, CallbackInfo ci){
+    private void packetTotalOut(Packet<?> inPacket, GenericFutureListener<? extends Future<? super Void>>[] futureListeners, CallbackInfo ci) {
         PacketCounter.totalOut++;
     }
 

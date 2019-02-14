@@ -11,7 +11,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(
@@ -23,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 )
 public class CarpetMain {
 
-    public static Logger logger;
+    public static Logger logger = LogManager.getLogger("Carpet");
     public static MinecraftServer minecraft_server;
 
     public CarpetMain() {
@@ -43,17 +45,15 @@ public class CarpetMain {
         LoggerRegistry.initLoggers();
     }
 
-    public static void onLoadAllWorlds(MinecraftServer server)
-    {
+    public static void onLoadAllWorlds(MinecraftServer server) {
         TickingArea.loadConfig(server);
     }
-    public static void onWorldsSaved(MinecraftServer server)
-    {
+
+    public static void onWorldsSaved(MinecraftServer server) {
         TickingArea.saveConfig(server);
     }
 
-    public static void onServerLoaded(MinecraftServer server)
-    {
+    public static void onServerLoaded(MinecraftServer server) {
         CarpetSettings.apply_settings_from_conf(server);
     }
 
@@ -70,10 +70,8 @@ public class CarpetMain {
         LoggerRegistry.playerDisconnected(player);
     }
 
-
     @Mod.EventHandler
     public void serverLoad(FMLServerStartingEvent event) {
-
         event.registerServerCommand(new CommandCarpet());
         event.registerServerCommand(new CommandGMC());
         event.registerServerCommand(new CommandGMS());
@@ -100,7 +98,6 @@ public class CarpetMain {
 
     @Mod.EventHandler
     public void onFingerprintViolation(FMLFingerprintViolationEvent event) {
-
         if (!event.isDirectory()) {
             logger.warn("*******************************************************************************************************");
             logger.warn("                                         WARNING!                                                      ");

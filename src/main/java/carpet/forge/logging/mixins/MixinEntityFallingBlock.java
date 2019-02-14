@@ -37,17 +37,20 @@ public abstract class MixinEntityFallingBlock extends Entity {
         super.setDead();
     }
 
-    @Inject(method = "<init>(Lnet/minecraft/world/World;DDDLnet/minecraft/block/state/IBlockState;)V", at = @At(value = "RETURN"))
-    private void onEntityFallingBlock(World worldIn, double x, double y, double z, IBlockState fallingBlockState, CallbackInfo ci){
+    @Inject(method = "<init>(Lnet/minecraft/world/World;DDDLnet/minecraft/block/state/IBlockState;)V",
+            at = @At(value = "RETURN"))
+    private void onEntityFallingBlock(World worldIn, double x, double y, double z, IBlockState fallingBlockState, CallbackInfo ci) {
         this.iceCount = 0;
         if (LoggerRegistry.__fallingBlocks)
             logHelper = new TrajectoryLogHelper("fallingBlocks");
     }
 
-    public String cm_name() { return "Falling Block"; }
+    public String cm_name() {
+        return "Falling Block";
+    }
 
     @Inject(method = "onUpdate", at = @At(value = "HEAD"))
-    private void onOnUpdate(CallbackInfo ci){
+    private void onOnUpdate(CallbackInfo ci) {
         if (LoggerRegistry.__fallingBlocks && logHelper != null)
             logHelper.onTick(posX, posY, posZ, motionX, motionY, motionZ);
     }

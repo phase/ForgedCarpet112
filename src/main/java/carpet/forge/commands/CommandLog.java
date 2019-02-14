@@ -1,7 +1,6 @@
 package carpet.forge.commands;
 
 
-import carpet.forge.CarpetMain;
 import carpet.forge.CarpetSettings;
 import carpet.forge.logging.LogHandler;
 import carpet.forge.logging.Logger;
@@ -34,55 +33,41 @@ public class CommandLog extends CarpetCommandBase {
 
         if (!command_enabled("commandLog", sender)) return;
         EntityPlayer player = null;
-        if (sender instanceof EntityPlayer)
-        {
-            player = (EntityPlayer)sender;
+        if (sender instanceof EntityPlayer) {
+            player = (EntityPlayer) sender;
         }
 
-        if (args.length == 0)
-        {
-            if (player == null)
-            {
+        if (args.length == 0) {
+            if (player == null) {
                 return;
             }
-            Map<String,String> subs = LoggerRegistry.getPlayerSubscriptions(player.getName());
-            if (subs == null)
-            {
+            Map<String, String> subs = LoggerRegistry.getPlayerSubscriptions(player.getName());
+            if (subs == null) {
                 subs = new HashMap<>();
             }
             List<String> all_logs = new ArrayList<>(LoggerRegistry.getLoggerNames());
             Collections.sort(all_logs);
             Messenger.m(player, "w _____________________");
             Messenger.m(player, "w Available logging options:");
-            for (String lname: all_logs)
-            {
+            for (String lname : all_logs) {
                 List<Object> comp = new ArrayList<>();
-                String color = subs.containsKey(lname)?"w":"g";
-                comp.add("w  - "+lname+": ");
+                String color = subs.containsKey(lname) ? "w" : "g";
+                comp.add("w  - " + lname + ": ");
                 Logger logger = LoggerRegistry.getLogger(lname);
-                String [] options = logger.getOptions();
-                if (options == null)
-                {
-                    if (subs.containsKey(lname))
-                    {
+                String[] options = logger.getOptions();
+                if (options == null) {
+                    if (subs.containsKey(lname)) {
                         comp.add("l Subscribed ");
-                    }
-                    else
-                    {
+                    } else {
                         comp.add(color + " [Subscribe] ");
                         comp.add("^w toggle subscription to " + lname);
                         comp.add("!/log " + lname);
                     }
-                }
-                else
-                {
-                    for (String option : logger.getOptions())
-                    {
-                        if (subs.containsKey(lname) && subs.get(lname).equalsIgnoreCase(option))
-                        {
+                } else {
+                    for (String option : logger.getOptions()) {
+                        if (subs.containsKey(lname) && subs.get(lname).equalsIgnoreCase(option)) {
                             comp.add("l [" + option + "] ");
-                        } else
-                        {
+                        } else {
                             comp.add(color + " [" + option + "] ");
                             comp.add("^w toggle subscription to " + lname + " " + option);
                             comp.add("!/log " + lname + " " + option);
@@ -90,111 +75,85 @@ public class CommandLog extends CarpetCommandBase {
 
                     }
                 }
-                if (subs.containsKey(lname))
-                {
+                if (subs.containsKey(lname)) {
                     comp.add("nb [X]");
                     comp.add("^w Click to toggle subscription");
-                    comp.add("!/log "+lname);
+                    comp.add("!/log " + lname);
                 }
-                Messenger.m(player,comp.toArray(new Object[0]));
+                Messenger.m(player, comp.toArray(new Object[0]));
             }
             return;
         }
         // toggle to default
-        if ("clear".equalsIgnoreCase(args[0]))
-        {
-            if (args.length > 1)
-            {
+        if ("clear".equalsIgnoreCase(args[0])) {
+            if (args.length > 1) {
                 player = server.getPlayerList().getPlayerByUsername(args[1]);
             }
-            if (player == null)
-            {
+            if (player == null) {
                 throw new WrongUsageException("No player specified");
             }
-            for (String logname : LoggerRegistry.getLoggerNames())
-            {
+            for (String logname : LoggerRegistry.getLoggerNames()) {
                 LoggerRegistry.unsubscribePlayer(player.getName(), logname);
             }
             notifyCommandListener(sender, this, "Unsubscribed from all logs");
             return;
         }
         Logger logger = LoggerRegistry.getLogger(args[0]);
-        if (logger != null)
-        {
+        if (logger != null) {
             String option = null;
-            if (args.length >= 2)
-            {
+            if (args.length >= 2) {
                 option = logger.getAcceptedOption(args[1]);
             }
-            if (args.length >= 3)
-            {
+            if (args.length >= 3) {
                 player = server.getPlayerList().getPlayerByUsername(args[2]);
             }
-            if (player == null)
-            {
+            if (player == null) {
                 throw new WrongUsageException("No player specified");
             }
             LogHandler handler = null;
-            if (args.length >= 4)
-            {
+            if (args.length >= 4) {
                 handler = LogHandler.createHandler(args[3], ArrayUtils.subarray(args, 4, args.length));
-                if (handler == null)
-                {
+                if (handler == null) {
                     throw new CommandException("Invalid handler");
                 }
             }
             boolean subscribed = true;
-            if (args.length >= 2 && "clear".equalsIgnoreCase(args[1]))
-            {
+            if (args.length >= 2 && "clear".equalsIgnoreCase(args[1])) {
                 LoggerRegistry.unsubscribePlayer(player.getName(), logger.getLogName());
                 subscribed = false;
-            }
-            else if (option == null)
-            {
+            } else if (option == null) {
                 subscribed = LoggerRegistry.togglePlayerSubscription(player.getName(), logger.getLogName(), handler);
-            }
-            else
-            {
+            } else {
                 LoggerRegistry.subscribePlayer(player.getName(), logger.getLogName(), option, handler);
             }
-            if (subscribed)
-            {
+            if (subscribed) {
                 Messenger.m(player, "gi Subscribed to " + logger.getLogName() + ".");
-            }
-            else
-            {
+            } else {
                 Messenger.m(player, "gi Unsubscribed from " + logger.getLogName() + ".");
             }
-        }
-        else
-        {
+        } else {
             throw new WrongUsageException("No logger named " + args[0] + ".");
         }
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
-        if (!CarpetSettings.getBool("commandLog"))
-        {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
+        if (!CarpetSettings.getBool("commandLog")) {
             return Collections.<String>emptyList();
         }
-        if (args.length == 1)
-        {
+        if (args.length == 1) {
             Set<String> options = new HashSet<>(LoggerRegistry.getLoggerNames());
             options.add("clear");
             return getListOfStringsMatchingLastWord(args, options);
-        }
-        else if (args.length == 2)
-        {
-            if ("clear".equalsIgnoreCase(args[0]))
-            {
+        } else if (args.length == 2) {
+            if ("clear".equalsIgnoreCase(args[0])) {
                 List<String> players = Arrays.asList(server.getOnlinePlayerNames());
                 return getListOfStringsMatchingLastWord(args, players.toArray(new String[0]));
             }
             Logger logger = LoggerRegistry.getLogger(args[0]);
-            if (logger != null)
-            {
-                String [] opts = logger.getOptions();
+            if (logger != null) {
+                String[] opts = logger.getOptions();
                 List<String> options = new ArrayList<>();
                 options.add("clear");
                 if (opts != null)
@@ -203,14 +162,10 @@ public class CommandLog extends CarpetCommandBase {
                     options.add("on");
                 return getListOfStringsMatchingLastWord(args, options.toArray(new String[0]));
             }
-        }
-        else if (args.length == 3)
-        {
+        } else if (args.length == 3) {
             List<String> players = Arrays.asList(server.getOnlinePlayerNames());
             return getListOfStringsMatchingLastWord(args, players.toArray(new String[0]));
-        }
-        else if (args.length == 4)
-        {
+        } else if (args.length == 4) {
             return getListOfStringsMatchingLastWord(args, LogHandler.getHandlerNames());
         }
 

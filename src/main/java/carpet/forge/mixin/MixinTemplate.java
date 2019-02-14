@@ -36,59 +36,52 @@ public abstract class MixinTemplate {
         return null;
     }
 
-    @Shadow protected abstract void addEntitiesToWorld(World worldIn, BlockPos pos, Mirror mirrorIn, Rotation rotationIn, @Nullable StructureBoundingBox aabb);
+    @Shadow
+    protected abstract void addEntitiesToWorld(World worldIn, BlockPos pos, Mirror mirrorIn, Rotation rotationIn,
+                                               @Nullable StructureBoundingBox aabb);
 
     /**
      * @author DeadlyMC
      * @reason Local capturing issues
      */
     @Overwrite
-    public void addBlocksToWorld(World worldIn, BlockPos pos, @Nullable ITemplateProcessor templateProcessor, PlacementSettings placementIn, int flags)
-    {
-        if ((!this.blocks.isEmpty() || !placementIn.getIgnoreEntities() && !this.entities.isEmpty()) && this.size.getX() >= 1 && this.size.getY() >= 1 && this.size.getZ() >= 1)
-        {
+    public void addBlocksToWorld(World worldIn, BlockPos pos, @Nullable
+            ITemplateProcessor templateProcessor, PlacementSettings placementIn, int flags) {
+        if ((!this.blocks.isEmpty() || !placementIn.getIgnoreEntities() && !this.entities.isEmpty()) && this.size.getX() >= 1 && this.size.getY() >= 1 && this.size.getZ() >= 1) {
             Block block = placementIn.getReplacedBlock();
             StructureBoundingBox structureboundingbox = placementIn.getBoundingBox();
 
-            for (Template.BlockInfo template$blockinfo : this.blocks)
-            {
+            for (Template.BlockInfo template$blockinfo : this.blocks) {
                 BlockPos blockpos = transformedBlockPos(placementIn, template$blockinfo.pos).add(pos);
                 // Forge: skip processing blocks outside BB to prevent cascading worldgen issues
                 if (structureboundingbox != null && !structureboundingbox.isVecInside(blockpos)) continue;
                 Template.BlockInfo template$blockinfo1 = templateProcessor != null ? templateProcessor.processBlock(worldIn, blockpos, template$blockinfo) : template$blockinfo;
 
-                if (template$blockinfo1 != null)
-                {
+                if (template$blockinfo1 != null) {
                     Block block1 = template$blockinfo1.blockState.getBlock();
 
-                    if ((block == null || block != block1) && (!placementIn.getIgnoreStructureBlock() || block1 != Blocks.STRUCTURE_BLOCK) && (structureboundingbox == null || structureboundingbox.isVecInside(blockpos)))
-                    {
+                    if ((block == null || block != block1) && (!placementIn.getIgnoreStructureBlock() || block1 != Blocks.STRUCTURE_BLOCK) && (structureboundingbox == null || structureboundingbox.isVecInside(blockpos))) {
                         IBlockState iblockstate = template$blockinfo1.blockState.withMirror(placementIn.getMirror());
                         IBlockState iblockstate1 = iblockstate.withRotation(placementIn.getRotation());
 
-                        if (template$blockinfo1.tileentityData != null)
-                        {
+                        if (template$blockinfo1.tileentityData != null) {
                             TileEntity tileentity = worldIn.getTileEntity(blockpos);
 
-                            if (tileentity != null)
-                            {
-                                if (tileentity instanceof IInventory)
-                                {
-                                    ((IInventory)tileentity).clear();
+                            if (tileentity != null) {
+                                if (tileentity instanceof IInventory) {
+                                    ((IInventory) tileentity).clear();
                                 }
 
                                 // [FCM] FillUpdates
-                                worldIn.setBlockState(blockpos, Blocks.BARRIER.getDefaultState(), 4 | (CarpetSettings.getBool("fillUpdates")?0:128));
+                                worldIn.setBlockState(blockpos, Blocks.BARRIER.getDefaultState(), 4 | (CarpetSettings.getBool("fillUpdates") ? 0 : 128));
                             }
                         }
 
                         // [FCM] FillUpdates
-                        if (worldIn.setBlockState(blockpos, iblockstate1, flags | (CarpetSettings.getBool("fillUpdates")?0:128)) && template$blockinfo1.tileentityData != null)
-                        {
+                        if (worldIn.setBlockState(blockpos, iblockstate1, flags | (CarpetSettings.getBool("fillUpdates") ? 0 : 128)) && template$blockinfo1.tileentityData != null) {
                             TileEntity tileentity2 = worldIn.getTileEntity(blockpos);
 
-                            if (tileentity2 != null)
-                            {
+                            if (tileentity2 != null) {
                                 template$blockinfo1.tileentityData.setInteger("x", blockpos.getX());
                                 template$blockinfo1.tileentityData.setInteger("y", blockpos.getY());
                                 template$blockinfo1.tileentityData.setInteger("z", blockpos.getZ());
@@ -101,26 +94,20 @@ public abstract class MixinTemplate {
                 }
             }
 
-            for (Template.BlockInfo template$blockinfo2 : this.blocks)
-            {
-                if (block == null || block != template$blockinfo2.blockState.getBlock())
-                {
+            for (Template.BlockInfo template$blockinfo2 : this.blocks) {
+                if (block == null || block != template$blockinfo2.blockState.getBlock()) {
                     BlockPos blockpos1 = transformedBlockPos(placementIn, template$blockinfo2.pos).add(pos);
 
-                    if (structureboundingbox == null || structureboundingbox.isVecInside(blockpos1))
-                    {
+                    if (structureboundingbox == null || structureboundingbox.isVecInside(blockpos1)) {
                         // [FCM] FillUpdates - if statement around
-                        if (CarpetSettings.getBool("fillUpdates"))
-                        {
+                        if (CarpetSettings.getBool("fillUpdates")) {
                             worldIn.notifyNeighborsRespectDebug(blockpos1, template$blockinfo2.blockState.getBlock(), false);
                         }
                         // [FCM] End
-                        if (template$blockinfo2.tileentityData != null)
-                        {
+                        if (template$blockinfo2.tileentityData != null) {
                             TileEntity tileentity1 = worldIn.getTileEntity(blockpos1);
 
-                            if (tileentity1 != null)
-                            {
+                            if (tileentity1 != null) {
                                 tileentity1.markDirty();
                             }
                         }
@@ -128,8 +115,7 @@ public abstract class MixinTemplate {
                 }
             }
 
-            if (!placementIn.getIgnoreEntities())
-            {
+            if (!placementIn.getIgnoreEntities()) {
                 this.addEntitiesToWorld(worldIn, pos, placementIn.getMirror(), placementIn.getRotation(), structureboundingbox);
             }
         }

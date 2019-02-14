@@ -1,6 +1,6 @@
 package carpet.forge.mixin;
 
-import carpet.forge.utils.mixininterfaces.IMixinEntitySlime;
+import carpet.forge.interfaces.IMixinEntitySlime;
 import net.minecraft.entity.monster.EntitySlime;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -12,6 +12,6 @@ public abstract class MixinEntitySlime implements IMixinEntitySlime {
 
     @Override
     public float getPublicAttackStrength() {
-        return (float)this.getAttackStrength();
+        return (float) this.getAttackStrength();
     }
 }

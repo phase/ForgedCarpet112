@@ -1,7 +1,7 @@
 package carpet.forge.mixin;
 
-import carpet.forge.utils.mixininterfaces.IItem;
-import carpet.forge.utils.mixininterfaces.IItemStack;
+import carpet.forge.interfaces.IItem;
+import carpet.forge.interfaces.IItemStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;

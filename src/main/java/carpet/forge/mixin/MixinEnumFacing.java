@@ -22,14 +22,11 @@ public abstract class MixinEnumFacing {
      * Helper for FlippinCactus and RotatorBlock
      */
     @Overwrite
-    public static EnumFacing getDirectionFromEntityLiving(BlockPos pos, EntityLivingBase placer)
-    {
-        if (Math.abs(placer.posX - (double)((float)pos.getX() + 0.5F)) < 2.0D && Math.abs(placer.posZ - (double)((float)pos.getZ() + 0.5F)) < 2.0D)
-        {
-            double d0 = placer.posY + (double)placer.getEyeHeight();
+    public static EnumFacing getDirectionFromEntityLiving(BlockPos pos, EntityLivingBase placer) {
+        if (Math.abs(placer.posX - (double) ((float) pos.getX() + 0.5F)) < 2.0D && Math.abs(placer.posZ - (double) ((float) pos.getZ() + 0.5F)) < 2.0D) {
+            double d0 = placer.posY + (double) placer.getEyeHeight();
 
-            if (d0 - (double)pos.getY() > 2.0D)
-            {
+            if (d0 - (double) pos.getY() > 2.0D) {
                 // [FCM] Start
                 if (BlockRotator.flippinEligibility(placer))
                     return DOWN;
@@ -37,8 +34,7 @@ public abstract class MixinEnumFacing {
                 return UP;
             }
 
-            if ((double)pos.getY() - d0 > 0.0D)
-            {
+            if ((double) pos.getY() - d0 > 0.0D) {
                 // [FCM] Start
                 if (BlockRotator.flippinEligibility(placer))
                     return UP;

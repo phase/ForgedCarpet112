@@ -1,6 +1,5 @@
 package carpet.forge.commands;
 
-import carpet.forge.CarpetMain;
 import carpet.forge.CarpetSettings;
 import carpet.forge.utils.DistanceCalculator;
 import net.minecraft.command.CommandException;
@@ -28,8 +27,7 @@ public class CommandDistance extends CarpetCommandBase {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
         if (!command_enabled("commandDistance", sender)) return;
-        if (args.length != 6)
-        {
+        if (args.length != 6) {
             throw new WrongUsageException(getUsage(sender), new Object[0]);
         }
         BlockPos blockpos = parseBlockPos(sender, args, 0, false);
@@ -39,17 +37,15 @@ public class CommandDistance extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
-        if (!CarpetSettings.getBool("commandDistance"))
-        {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
+        if (!CarpetSettings.getBool("commandDistance")) {
             return Collections.<String>emptyList();
         }
-        if (args.length > 0 && args.length <= 3)
-        {
+        if (args.length > 0 && args.length <= 3) {
             return getTabCompletionCoordinate(args, 0, targetPos);
         }
-        if (args.length > 3 && args.length <= 6)
-        {
+        if (args.length > 3 && args.length <= 6) {
             return getTabCompletionCoordinate(args, 3, targetPos);
         }
         return Collections.<String>emptyList();

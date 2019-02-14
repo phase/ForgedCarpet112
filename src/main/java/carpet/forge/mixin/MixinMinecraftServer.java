@@ -128,8 +128,8 @@ public abstract class MixinMinecraftServer {
     @Shadow protected abstract void setUserMessage(String message);
 
     @Inject(method = "<init>", at = @At(value = "RETURN"))
-    private void onMinecraftServer(File anvilFileIn, Proxy proxyIn, DataFixer dataFixerIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
-        CarpetMain.init((MinecraftServer)(Object)this);
+    private void onMinecraftServer(File anvilFileIn, Proxy proxyIn, DataFixer dataFixerIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci) {
+        CarpetMain.init((MinecraftServer) (Object) this);
     }
 
     /**
@@ -137,12 +137,9 @@ public abstract class MixinMinecraftServer {
      * @reason 'continue' statements.
      */
     @Overwrite
-    public void run()
-    {
-        try
-        {
-            if (this.init())
-            {
+    public void run() {
+        try {
+            if (this.init()) {
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().handleServerStarted();
                 this.currentTime = getCurrentTimeMillis();
                 long i = 0L;
@@ -150,14 +147,11 @@ public abstract class MixinMinecraftServer {
                 this.statusResponse.setVersion(new ServerStatusResponse.Version("1.12.2", 340));
                 this.applyServerIconToResponse(this.statusResponse);
 
-                while (this.serverRunning)
-                {
+                while (this.serverRunning) {
                     /* [FCM] Command Tick */
                     //TODO: Check if this check is necessary
-                    if (TickSpeed.time_warp_start_time != 0)
-                    {
-                        if (TickSpeed.continueWarp())
-                        {
+                    if (TickSpeed.time_warp_start_time != 0) {
+                        if (TickSpeed.continueWarp()) {
                             this.tick();
                             this.currentTime = getCurrentTimeMillis();
                             this.serverIsRunning = true;
@@ -168,15 +162,13 @@ public abstract class MixinMinecraftServer {
                     long k = getCurrentTimeMillis();
                     long j = k - this.currentTime;
 
-                    if (j > 2000L && this.currentTime - this.timeOfLastWarning >= 15000L)
-                    {
+                    if (j > 2000L && this.currentTime - this.timeOfLastWarning >= 15000L) {
                         LOGGER.warn("Can't keep up! Did the system time change, or is the server overloaded? Running {}ms behind, skipping {} tick(s)", Long.valueOf(j), Long.valueOf(j / 50L));
                         j = 2000L;
                         this.timeOfLastWarning = this.currentTime;
                     }
 
-                    if (j < 0L)
-                    {
+                    if (j < 0L) {
                         LOGGER.warn("Time ran backwards! Did the system time change?");
                         j = 0L;
                     }
@@ -185,19 +177,14 @@ public abstract class MixinMinecraftServer {
                     this.currentTime = k;
                     boolean falling_behind = false;
 
-                    if (this.worlds[0].areAllPlayersAsleep())
-                    {
+                    if (this.worlds[0].areAllPlayersAsleep()) {
                         this.tick();
                         i = 0L;
-                    }
-                    else
-                    {
+                    } else {
                         boolean keeping_up = false;
-                        while (i > TickSpeed.mspt)
-                        {
+                        while (i > TickSpeed.mspt) {
                             // [FCM] WatchDogFix and Tick stuff
-                            if (CarpetSettings.getBool("watchdogFix") && keeping_up)
-                            {
+                            if (CarpetSettings.getBool("watchdogFix") && keeping_up) {
                                 this.currentTime = getCurrentTimeMillis();
                                 this.serverIsRunning = true;
                                 falling_behind = true;
@@ -210,12 +197,9 @@ public abstract class MixinMinecraftServer {
                     }
 
                     // [FCM] Ticking stuff
-                    if (falling_behind)
-                    {
+                    if (falling_behind) {
                         Thread.sleep(1L); /* Forged carpet mod */
-                    }
-                    else
-                    {
+                    } else {
                         Thread.sleep(Math.max(1L, TickSpeed.mspt - i)); /* Forged carpet mod */
                     }
                     this.serverIsRunning = true;
@@ -223,58 +207,39 @@ public abstract class MixinMinecraftServer {
                 }
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().handleServerStopping();
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().expectServerStopped(); // has to come before finalTick to avoid race conditions
-            }
-            else
-            {
+            } else {
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().expectServerStopped(); // has to come before finalTick to avoid race conditions
-                this.finalTick((CrashReport)null);
+                this.finalTick((CrashReport) null);
             }
-        }
-        catch (net.minecraftforge.fml.common.StartupQuery.AbortedException e)
-        {
+        } catch (net.minecraftforge.fml.common.StartupQuery.AbortedException e) {
             // ignore silently
             net.minecraftforge.fml.common.FMLCommonHandler.instance().expectServerStopped(); // has to come before finalTick to avoid race conditions
-        }
-        catch (Throwable throwable1)
-        {
+        } catch (Throwable throwable1) {
             LOGGER.error("Encountered an unexpected exception", throwable1);
             CrashReport crashreport = null;
 
-            if (throwable1 instanceof ReportedException)
-            {
-                crashreport = this.addServerInfoToCrashReport(((ReportedException)throwable1).getCrashReport());
-            }
-            else
-            {
+            if (throwable1 instanceof ReportedException) {
+                crashreport = this.addServerInfoToCrashReport(((ReportedException) throwable1).getCrashReport());
+            } else {
                 crashreport = this.addServerInfoToCrashReport(new CrashReport("Exception in server tick loop", throwable1));
             }
 
             File file1 = new File(new File(this.getDataDirectory(), "crash-reports"), "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-server.txt");
 
-            if (crashreport.saveToFile(file1))
-            {
-                LOGGER.error("This crash report has been saved to: {}", (Object)file1.getAbsolutePath());
-            }
-            else
-            {
+            if (crashreport.saveToFile(file1)) {
+                LOGGER.error("This crash report has been saved to: {}", (Object) file1.getAbsolutePath());
+            } else {
                 LOGGER.error("We were unable to save this crash report to disk.");
             }
 
             net.minecraftforge.fml.common.FMLCommonHandler.instance().expectServerStopped(); // has to come before finalTick to avoid race conditions
             this.finalTick(crashreport);
-        }
-        finally
-        {
-            try
-            {
+        } finally {
+            try {
                 this.stopServer();
-            }
-            catch (Throwable throwable)
-            {
+            } catch (Throwable throwable) {
                 LOGGER.error("Exception stopping the server", throwable);
-            }
-            finally
-            {
+            } finally {
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().handleServerStopped();
                 this.serverStopped = true;
                 this.systemExitNow();
@@ -287,19 +252,16 @@ public abstract class MixinMinecraftServer {
      * @reason Extra indents
      */
     @Overwrite
-    public void tick()
-    {
+    public void tick() {
         long i = System.nanoTime();
         net.minecraftforge.fml.common.FMLCommonHandler.instance().onPreServerTick();
         ++this.tickCounter;
-        CarpetMain.tick((MinecraftServer)(Object)this);
-        if (CarpetProfiler.tick_health_requested != 0L)
-        {
+        CarpetMain.tick((MinecraftServer) (Object) this);
+        if (CarpetProfiler.tick_health_requested != 0L) {
             CarpetProfiler.start_tick_profiling();
         }
 
-        if (this.startProfiling)
-        {
+        if (this.startProfiling) {
             this.startProfiling = false;
             this.profiler.profilingEnabled = true;
             this.profiler.clearProfiling();
@@ -308,16 +270,14 @@ public abstract class MixinMinecraftServer {
         this.profiler.startSection("root");
         this.updateTimeLightAndEntities();
 
-        if (i - this.nanoTimeSinceStatusRefresh >= 5000000000L)
-        {
+        if (i - this.nanoTimeSinceStatusRefresh >= 5000000000L) {
             this.nanoTimeSinceStatusRefresh = i;
             this.statusResponse.setPlayers(new ServerStatusResponse.Players(this.getMaxPlayers(), this.getCurrentPlayerCount()));
             GameProfile[] agameprofile = new GameProfile[Math.min(this.getCurrentPlayerCount(), 12)];
             int j = MathHelper.getInt(this.random, 0, this.getCurrentPlayerCount() - agameprofile.length);
 
-            for (int k = 0; k < agameprofile.length; ++k)
-            {
-                agameprofile[k] = ((EntityPlayerMP)this.playerList.getPlayers().get(j + k)).getGameProfile();
+            for (int k = 0; k < agameprofile.length; ++k) {
+                agameprofile[k] = ((EntityPlayerMP) this.playerList.getPlayers().get(j + k)).getGameProfile();
             }
 
             Collections.shuffle(Arrays.asList(agameprofile));
@@ -325,8 +285,7 @@ public abstract class MixinMinecraftServer {
             this.statusResponse.invalidateJson();
         }
 
-        if (this.tickCounter % 900 == 0)
-        {
+        if (this.tickCounter % 900 == 0) {
             CarpetProfiler.start_section(null, "Autosave");
             this.profiler.startSection("save");
             this.playerList.saveAllPlayerData();
@@ -340,39 +299,33 @@ public abstract class MixinMinecraftServer {
         this.profiler.endSection();
         this.profiler.startSection("snooper");
 
-        if (!this.usageSnooper.isSnooperRunning() && this.tickCounter > 100)
-        {
+        if (!this.usageSnooper.isSnooperRunning() && this.tickCounter > 100) {
             this.usageSnooper.startSnooper();
         }
 
-        if (this.tickCounter % 6000 == 0)
-        {
+        if (this.tickCounter % 6000 == 0) {
             this.usageSnooper.addMemoryStatsToSnooper();
         }
 
         this.profiler.endSection();
         this.profiler.endSection();
         net.minecraftforge.fml.common.FMLCommonHandler.instance().onPostServerTick();
-        if (CarpetProfiler.tick_health_requested != 0L)
-        {
-            CarpetProfiler.end_tick_profiling((MinecraftServer)(Object)this);
+        if (CarpetProfiler.tick_health_requested != 0L) {
+            CarpetProfiler.end_tick_profiling((MinecraftServer) (Object) this);
         }
     }
 
     /**
      * @author DeadlyMC
      * @reason For some reason injection causes a crash.Maybe because CarpetProfiler.end_current_section cannot
-     *         find current section.
+     * find current section.
      */
     @Overwrite
-    public void updateTimeLightAndEntities()
-    {
+    public void updateTimeLightAndEntities() {
         this.profiler.startSection("jobs");
 
-        synchronized (this.futureTaskQueue)
-        {
-            while (!this.futureTaskQueue.isEmpty())
-            {
+        synchronized (this.futureTaskQueue) {
+            while (!this.futureTaskQueue.isEmpty()) {
                 Util.runTask(this.futureTaskQueue.poll(), LOGGER);
             }
         }
@@ -381,21 +334,18 @@ public abstract class MixinMinecraftServer {
         net.minecraftforge.common.chunkio.ChunkIOExecutor.tick();
 
         Integer[] ids = net.minecraftforge.common.DimensionManager.getIDs(this.tickCounter % 200 == 0);
-        for (int x = 0; x < ids.length; x++)
-        {
+        for (int x = 0; x < ids.length; x++) {
             int id = ids[x];
             long i = System.nanoTime();
 
-            if (id == 0 || this.getAllowNether())
-            {
+            if (id == 0 || this.getAllowNether()) {
                 WorldServer worldserver = net.minecraftforge.common.DimensionManager.getWorld(id);
                 this.profiler.func_194340_a(() ->
                 {
                     return worldserver.getWorldInfo().getWorldName();
                 });
 
-                if (this.tickCounter % 20 == 0)
-                {
+                if (this.tickCounter % 20 == 0) {
                     this.profiler.startSection("timeSync");
                     this.playerList.sendPacketToAllPlayersInDimension(new SPacketTimeUpdate(worldserver.getTotalWorldTime(), worldserver.getWorldTime(), worldserver.getGameRules().getBoolean("doDaylightCycle")), worldserver.provider.getDimension());
                     this.profiler.endSection();
@@ -404,23 +354,17 @@ public abstract class MixinMinecraftServer {
                 this.profiler.startSection("tick");
                 net.minecraftforge.fml.common.FMLCommonHandler.instance().onPreWorldTick(worldserver);
 
-                try
-                {
+                try {
                     worldserver.tick();
-                }
-                catch (Throwable throwable1)
-                {
+                } catch (Throwable throwable1) {
                     CrashReport crashreport = CrashReport.makeCrashReport(throwable1, "Exception ticking world");
                     worldserver.addWorldInfoToCrashReport(crashreport);
                     throw new ReportedException(crashreport);
                 }
 
-                try
-                {
+                try {
                     worldserver.updateEntities();
-                }
-                catch (Throwable throwable)
-                {
+                } catch (Throwable throwable) {
                     CrashReport crashreport1 = CrashReport.makeCrashReport(throwable, "Exception ticking world entities");
                     worldserver.addWorldInfoToCrashReport(crashreport1);
                     throw new ReportedException(crashreport1);
@@ -449,18 +393,18 @@ public abstract class MixinMinecraftServer {
         this.getFunctionManager().update();
         this.profiler.endStartSection("tickables");
 
-        for (int k = 0; k < this.tickables.size(); ++k)
-        {
-            ((ITickable)this.tickables.get(k)).update();
+        for (int k = 0; k < this.tickables.size(); ++k) {
+            ((ITickable) this.tickables.get(k)).update();
         }
 
         this.profiler.endSection();
     }
 
     // [FCM] TickingAreas
-    @Inject(method = "loadAllWorlds", at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lnet/minecraft/server/MinecraftServer;initialWorldChunkLoad()V"))
-    private void onLoadAllWorlds(String saveName, String worldNameIn, long seed, WorldType type, String generatorOptions, CallbackInfo ci){
-        CarpetMain.onLoadAllWorlds((MinecraftServer)(Object)this);
+    @Inject(method = "loadAllWorlds",
+            at = @At(value = "RETURN", target = "Lnet/minecraft/server/MinecraftServer;initialWorldChunkLoad()V"))
+    private void onLoadAllWorlds(String saveName, String worldNameIn, long seed, WorldType type, String generatorOptions, CallbackInfo ci) {
+        CarpetMain.onLoadAllWorlds((MinecraftServer) (Object) this);
     }
 
     /**
@@ -468,8 +412,7 @@ public abstract class MixinMinecraftServer {
      * @reason if statement arounds
      */
     @Overwrite
-    public void initialWorldChunkLoad()
-    {
+    public void initialWorldChunkLoad() {
         int i = 16;
         int j = 4;
         int k = 192;
@@ -478,28 +421,23 @@ public abstract class MixinMinecraftServer {
         this.setUserMessage("menu.generatingTerrain");
         int j1 = 0;
         // [FCM] TickingAreas - Start
-        if (CarpetSettings.getBool("tickingAreas"))
-        {
-            TickingArea.initialChunkLoad((MinecraftServer)(Object)this, true);
+        if (CarpetSettings.getBool("tickingAreas")) {
+            TickingArea.initialChunkLoad((MinecraftServer) (Object) this, true);
         }
         // [FCM] TickingAreas - End
 
         // [FCM] DisableSpawnChunks - if statement around
-        if (!CarpetSettings.getBool("disableSpawnChunks"))
-        {
+        if (!CarpetSettings.getBool("disableSpawnChunks")) {
             LOGGER.info("Preparing start region for level 0");
             WorldServer worldserver = net.minecraftforge.common.DimensionManager.getWorld(j1);
             BlockPos blockpos = worldserver.getSpawnPoint();
             long k1 = getCurrentTimeMillis();
 
-            for (int l1 = -192; l1 <= 192 && this.isServerRunning(); l1 += 16)
-            {
-                for (int i2 = -192; i2 <= 192 && this.isServerRunning(); i2 += 16)
-                {
+            for (int l1 = -192; l1 <= 192 && this.isServerRunning(); l1 += 16) {
+                for (int i2 = -192; i2 <= 192 && this.isServerRunning(); i2 += 16) {
                     long j2 = getCurrentTimeMillis();
 
-                    if (j2 - k1 > 1000L)
-                    {
+                    if (j2 - k1 > 1000L) {
                         this.outputPercentRemaining("Preparing spawn area", i1 * 100 / 625);
                         k1 = j2;
                     }
@@ -514,8 +452,8 @@ public abstract class MixinMinecraftServer {
     }
 
     @Inject(method = "saveAllWorlds", at = @At("TAIL"))
-    private void onSaveAllWorlds(boolean isSilent, CallbackInfo ci){
-        CarpetMain.onWorldsSaved((MinecraftServer)(Object)this);
+    private void onSaveAllWorlds(boolean isSilent, CallbackInfo ci) {
+        CarpetMain.onWorldsSaved((MinecraftServer) (Object) this);
     }
 
 }

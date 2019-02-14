@@ -1,7 +1,7 @@
 package carpet.forge.mixin;
 
 import carpet.forge.CarpetSettings;
-import carpet.forge.utils.mixininterfaces.ITileEntityPiston;
+import carpet.forge.interfaces.ITileEntityPiston;
 import net.minecraft.block.BlockPistonExtension;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
@@ -17,14 +17,17 @@ public abstract class MixinTileEntityPiston extends TileEntity implements ITileE
 
     @Shadow private float lastProgress;
 
-    public String cm_name() { return "Piston"; }
+    public String cm_name() {
+        return "Piston";
+    }
 
     private long lastTicked;
 
-    @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;I)Z", shift = At.Shift.BEFORE))
+    @Inject(method = "update", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;I)Z",
+            shift = At.Shift.BEFORE))
     private void notifyBlockUpdate(CallbackInfo ci) {
-        if (CarpetSettings.pistonGhostBlocksFix == 1 )
-        {
+        if (CarpetSettings.pistonGhostBlocksFix == 1) {
             IBlockState blockstate = this.world.getBlockState(this.pos);
             this.world.notifyBlockUpdate(pos.offset(blockstate.getValue(BlockPistonExtension.FACING).getOpposite()), blockstate, blockstate, 0);
         }
@@ -33,17 +36,18 @@ public abstract class MixinTileEntityPiston extends TileEntity implements ITileE
 
     // [FCM] Fix for pistonGhostBlocks breaking caterpillar engine - start
     @Inject(method = "update", at = @At("HEAD"))
-    private void setLastTicked(CallbackInfo ci)
-    {
+    private void setLastTicked(CallbackInfo ci) {
         this.lastTicked = this.world.getTotalWorldTime();
     }
 
     @Override
-    public long getLastTicked()
-    {
+    public long getLastTicked() {
         return this.lastTicked;
     }
+
     @Override
-    public float getLastProgress() { return this.lastProgress; }
+    public float getLastProgress() {
+        return this.lastProgress;
+    }
     // [FCM] Fix for pistonGhostBlocks breaking caterpillar engine - End
 }

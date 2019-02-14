@@ -58,8 +58,7 @@ public class CommandStructure extends CarpetCommandBase {
         if (args.length < 1)
             throw new WrongUsageException(USAGE);
 
-        switch (args[0])
-        {
+        switch (args[0]) {
             case "load":
                 loadStructure(server, sender, args);
                 break;
@@ -75,8 +74,7 @@ public class CommandStructure extends CarpetCommandBase {
 
     }
 
-    private void loadStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
+    private void loadStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 2)
             throw new WrongUsageException(USAGE_LOAD);
 
@@ -92,16 +90,13 @@ public class CommandStructure extends CarpetCommandBase {
             throw new CommandException("Template \"" + args[1] + "\" doesn't exist");
 
         BlockPos origin = sender.getPosition();
-        if (args.length >= 5)
-        {
+        if (args.length >= 5) {
             origin = parseBlockPos(sender, args, 2, false);
         }
 
         Mirror mirror = Mirror.NONE;
-        if (args.length >= 6)
-        {
-            switch (args[5])
-            {
+        if (args.length >= 6) {
+            switch (args[5]) {
                 case "no_mirror":
                     mirror = Mirror.NONE;
                     break;
@@ -117,10 +112,8 @@ public class CommandStructure extends CarpetCommandBase {
         }
 
         Rotation rotation = Rotation.NONE;
-        if (args.length >= 7)
-        {
-            switch (args[6])
-            {
+        if (args.length >= 7) {
+            switch (args[6]) {
                 case "rotate_0":
                     rotation = Rotation.NONE;
                     break;
@@ -139,30 +132,24 @@ public class CommandStructure extends CarpetCommandBase {
         }
 
         boolean ignoreEntities = true;
-        if (args.length >= 8)
-        {
+        if (args.length >= 8) {
             ignoreEntities = parseBoolean(args[7]);
         }
 
         float integrity = 1;
-        if (args.length >= 9)
-        {
+        if (args.length >= 9) {
             integrity = (float) parseDouble(args[8], 0, 1);
         }
 
         long seed;
-        if (args.length >= 10)
-        {
+        if (args.length >= 10) {
             seed = parseLong(args[9]);
-        }
-        else
-        {
+        } else {
             seed = new Random().nextLong();
         }
 
         PlacementSettings settings = new PlacementSettings().setMirror(mirror).setRotation(rotation).setIgnoreEntities(ignoreEntities).setChunk(null).setReplacedBlock(null).setIgnoreStructureBlock(false);
-        if (integrity < 1)
-        {
+        if (integrity < 1) {
             settings.setIntegrity(integrity).setSeed(seed);
         }
 
@@ -171,8 +158,7 @@ public class CommandStructure extends CarpetCommandBase {
         notifyCommandListener(sender, this, "Successfully loaded structure " + args[1]);
     }
 
-    private void saveStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
+    private void saveStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 8)
             throw new WrongUsageException(USAGE_SAVE);
 
@@ -186,8 +172,7 @@ public class CommandStructure extends CarpetCommandBase {
         BlockPos size = new BlockPos(bb.getXSize(), bb.getYSize(), bb.getZSize());
 
         boolean ignoreEntities = true;
-        if (args.length >= 9)
-        {
+        if (args.length >= 9) {
             ignoreEntities = parseBoolean(args[8]);
         }
 
@@ -203,71 +188,55 @@ public class CommandStructure extends CarpetCommandBase {
         notifyCommandListener(sender, this, "Successfully saved structure " + structureName);
     }
 
-    private void listStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
+    private void listStructure(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         TemplateManager manager = server.worlds[0].getStructureTemplateManager();
         List<String> templates = listStructures(manager);
 
-        if (templates.isEmpty())
-        {
+        if (templates.isEmpty()) {
             sender.sendMessage(new TextComponentString("There are no saved structures yet"));
-        }
-        else
-        {
+        } else {
             final int PAGE_SIZE = 9;
             int pageCount = (templates.size() + PAGE_SIZE - 1) / PAGE_SIZE;
             int page = args.length >= 2 ? parseInt(args[1]) - 1 : 0;
             page = MathHelper.clamp(page, 0, pageCount - 1);
 
             sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Structure list page " + (page + 1) + " of " + pageCount + " (/structure list <page>)"));
-            for (int offset = 0; offset < PAGE_SIZE && page * PAGE_SIZE + offset < templates.size(); offset++)
-            {
+            for (int offset = 0; offset < PAGE_SIZE && page * PAGE_SIZE + offset < templates.size(); offset++) {
                 String template = templates.get(page * PAGE_SIZE + offset);
                 sender.sendMessage(new TextComponentString("- " + template + " by " + manager.get(server, new ResourceLocation(template)).getAuthor()));
             }
         }
     }
 
-    private static List<String> listStructures(TemplateManager manager)
-    {
+    private static List<String> listStructures(TemplateManager manager) {
         List<String> templates = new ArrayList<>();
 
         Path baseFolder = Paths.get(manager.baseFolder);
-        try
-        {
-            if (Files.exists(baseFolder))
-            {
+        try {
+            if (Files.exists(baseFolder)) {
                 Files.find(baseFolder, Integer.MAX_VALUE,
                         (path, attr) -> attr.isRegularFile() && path.getFileName().toString().endsWith(".nbt"))
                         .forEach(path -> templates.add(baseFolder.relativize(path).toString().replace(File.separator, "/").replace(".nbt", "")));
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             LogManager.getLogger().error("Unable to list custom structures", e);
         }
 
         Pattern pattern = Pattern.compile(".*assets/(\\w+)/structures/([\\w/]+)\\.nbt");
-        try
-        {
-            try
-            {
+        try {
+            try {
                 // try zip file first
                 ZipFile zip = new ZipFile(new File(MinecraftServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
                 Enumeration<? extends ZipEntry> entries = zip.entries();
-                while (entries.hasMoreElements())
-                {
+                while (entries.hasMoreElements()) {
                     String entryName = entries.nextElement().getName();
                     Matcher matcher = pattern.matcher(entryName);
-                    if (matcher.matches())
-                    {
+                    if (matcher.matches()) {
                         templates.add(matcher.group(1) + ":" + matcher.group(2));
                     }
                 }
                 zip.close();
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // try folder
                 Path root = Paths.get(MinecraftServer.class.getProtectionDomain().getCodeSource().getLocation().toURI());
                 Files.find(root, Integer.MAX_VALUE,
@@ -278,9 +247,7 @@ public class CommandStructure extends CarpetCommandBase {
                             templates.add(matcher.group(1) + ":" + matcher.group(2));
                         });
             }
-        }
-        catch (IOException | URISyntaxException e)
-        {
+        } catch (IOException | URISyntaxException e) {
             LogManager.getLogger().error("Unable to list built in structures", e);
         }
 
@@ -290,33 +257,23 @@ public class CommandStructure extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
-        if (args.length == 0)
-        {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
+        if (args.length == 0) {
             return Collections.emptyList();
-        }
-        else if (args.length == 1)
-        {
+        } else if (args.length == 1) {
             return getListOfStringsMatchingLastWord(args, "load", "save", "list");
-        }
-        else if ("load".equals(args[0]) || "save".equals(args[0]))
-        {
-            if (args[1].startsWith("\""))
-            {
+        } else if ("load".equals(args[0]) || "save".equals(args[0])) {
+            if (args[1].startsWith("\"")) {
                 boolean replaced = false;
-                try
-                {
-                    if (!args[args.length - 1].endsWith("\""))
-                    {
+                try {
+                    if (!args[args.length - 1].endsWith("\"")) {
                         args = replaceQuotes(args);
                         replaced = true;
                     }
+                } catch (CommandException e) {
                 }
-                catch (CommandException e)
-                {
-                }
-                if (!replaced)
-                {
+                if (!replaced) {
                     String commonPrefix = Arrays.stream(args).skip(1).limit(args.length - 2).collect(Collectors.joining(" "));
                     List<String> structs = listStructures(server.worlds[0].getStructureTemplateManager());
                     structs = structs.stream().map(s -> "\"" + s + "\"").collect(Collectors.toList());
@@ -325,62 +282,39 @@ public class CommandStructure extends CarpetCommandBase {
                     structs = structs.stream().map(s -> s.split(" ")[0]).collect(Collectors.toList());
                     return getListOfStringsMatchingLastWord(args, structs);
                 }
-            }
-            else if (args.length == 2)
-            {
+            } else if (args.length == 2) {
                 return getListOfStringsMatchingLastWord(args, listStructures(server.worlds[0].getStructureTemplateManager()).stream().filter(s -> !s.contains(" ")).collect(Collectors.toList()));
             }
 
-            if (args.length >= 3 && args.length <= 5)
-            {
+            if (args.length >= 3 && args.length <= 5) {
                 return getTabCompletionCoordinate(args, 2, targetPos);
-            }
-            else if ("load".equals(args[0]))
-            {
-                if (args.length == 6)
-                {
+            } else if ("load".equals(args[0])) {
+                if (args.length == 6) {
                     return getListOfStringsMatchingLastWord(args, "no_mirror", "mirror_left_right", "mirror_front_back");
-                }
-                else if (args.length == 7)
-                {
+                } else if (args.length == 7) {
                     return getListOfStringsMatchingLastWord(args, "rotate_0", "rotate_90", "rotate_180", "rotate_270");
-                }
-                else if (args.length == 8)
-                {
+                } else if (args.length == 8) {
                     return getListOfStringsMatchingLastWord(args, "true", "false");
-                }
-                else
-                {
+                } else {
                     return Collections.emptyList();
                 }
-            }
-            else
-            {
-                if (args.length >= 6 && args.length <= 8)
-                {
+            } else {
+                if (args.length >= 6 && args.length <= 8) {
                     return getTabCompletionCoordinate(args, 5, targetPos);
-                }
-                else if (args.length == 9)
-                {
+                } else if (args.length == 9) {
                     return getListOfStringsMatchingLastWord(args, "true", "false");
-                }
-                else
-                {
+                } else {
                     return Collections.emptyList();
                 }
             }
-        }
-        else
-        {
+        } else {
             return Collections.emptyList();
         }
     }
 
-    private static String[] replaceQuotes(String[] args) throws CommandException
-    {
+    private static String[] replaceQuotes(String[] args) throws CommandException {
         String structureName = args[1];
-        if (structureName.startsWith("\""))
-        {
+        if (structureName.startsWith("\"")) {
             int i = 2;
             while (!structureName.endsWith("\"") && i < args.length) {
                 structureName += " " + args[i++];
@@ -393,9 +327,7 @@ public class CommandStructure extends CarpetCommandBase {
             newArgs[1] = structureName;
             System.arraycopy(args, i, newArgs, 2, newArgs.length - 2);
             return newArgs;
-        }
-        else
-        {
+        } else {
             return args;
         }
     }

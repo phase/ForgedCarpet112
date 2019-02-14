@@ -1,6 +1,5 @@
 package carpet.forge.commands;
 
-import carpet.forge.CarpetMain;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -49,32 +48,25 @@ public class CommandFillBiome extends CarpetCommandBase {
         int maxZ = Math.max(z1, z2);
 
         Biome biome;
-        try
-        {
+        try {
             biome = Biome.getBiomeForId(Integer.parseInt(args[4]));
-        }
-        catch (NumberFormatException e)
-        {
+        } catch (NumberFormatException e) {
             biome = Biome.REGISTRY.getObject(new ResourceLocation(args[4]));
         }
-        if (biome == null)
-        {
+        if (biome == null) {
             throw new CommandException("Unknown biome " + args[4]);
         }
         byte biomeId = (byte) (Biome.getIdForBiome(biome) & 255);
 
         WorldServer world = (WorldServer) sender.getEntityWorld();
-        if (!world.isAreaLoaded(new BlockPos(minX, 0, minZ), new BlockPos(maxX, 0, maxZ)))
-        {
+        if (!world.isAreaLoaded(new BlockPos(minX, 0, minZ), new BlockPos(maxX, 0, maxZ))) {
             throw new CommandException("commands.fill.outOfWorld");
         }
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
-        for (int x = minX; x <= maxX; x++)
-        {
-            for (int z = minZ; z <= maxZ; z++)
-            {
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 Chunk chunk = world.getChunk(pos.setPos(x, 0, z));
                 chunk.getBiomeArray()[(x & 15) | (z & 15) << 4] = biomeId;
                 chunk.markDirty();
@@ -85,16 +77,12 @@ public class CommandFillBiome extends CarpetCommandBase {
         int maxChunkX = Math.floorDiv(maxX, 16);
         int minChunkZ = Math.floorDiv(minZ, 16);
         int maxChunkZ = Math.floorDiv(maxZ, 16);
-        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
-        {
-            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++)
-            {
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
                 PlayerChunkMapEntry entry = world.playerChunkMap.getEntry(chunkX, chunkZ);
-                if (entry != null)
-                {
+                if (entry != null) {
                     Chunk chunk = entry.getChunk();
-                    if (chunk != null)
-                    {
+                    if (chunk != null) {
                         SPacketChunkData packet = new SPacketChunkData(chunk, 65535);
                         for (EntityPlayerMP player : entry.players)
                             player.connection.sendPacket(packet);
@@ -108,32 +96,24 @@ public class CommandFillBiome extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
 
-        if (args.length == 0)
-        {
+        if (args.length == 0) {
             return Collections.emptyList();
-        }
-        else if (args.length == 1 || args.length == 3)
-        {
+        } else if (args.length == 1 || args.length == 3) {
             if (targetPos == null)
                 return getListOfStringsMatchingLastWord(args, "~");
             else
                 return getListOfStringsMatchingLastWord(args, String.valueOf(targetPos.getX()));
-        }
-        else if (args.length == 2 || args.length == 4)
-        {
+        } else if (args.length == 2 || args.length == 4) {
             if (targetPos == null)
                 return getListOfStringsMatchingLastWord(args, "~");
             else
                 return getListOfStringsMatchingLastWord(args, String.valueOf(targetPos.getZ()));
-        }
-        else if (args.length == 5)
-        {
+        } else if (args.length == 5) {
             return getListOfStringsMatchingLastWord(args, Biome.REGISTRY.getKeys());
-        }
-        else
-        {
+        } else {
             return Collections.emptyList();
         }
     }

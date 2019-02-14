@@ -1,6 +1,6 @@
 package carpet.forge.mixin;
 
-import carpet.forge.utils.mixininterfaces.IMixinBiome;
+import carpet.forge.interfaces.IMixinBiome;
 import net.minecraft.util.WeightedRandom;
 import net.minecraft.world.biome.Biome;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +15,7 @@ public abstract class MixinBiomeSpawnListEntry extends WeightedRandom.Item imple
     }
 
     @Override
-    public int getWeight(){
+    public int getWeight() {
         return this.itemWeight;
     }
 

@@ -20,20 +20,22 @@ public abstract class MixinEntityTNTPrimed extends Entity {
 
     private TNTLogHelper logHelper = null;
 
-    public String cm_name() { return "Primed TNT"; }
+    public String cm_name() {
+        return "Primed TNT";
+    }
 
-    @Inject(method = "<init>(Lnet/minecraft/world/World;DDDLnet/minecraft/entity/EntityLivingBase;)V", at = @At(value = "RETURN"))
-    private void loggerRegistryTNT(World worldIn, double x, double y, double z, EntityLivingBase igniter, CallbackInfo ci){
-        float h = (float)(Math.random() * (Math.PI * 2D));
-        if (LoggerRegistry.__tnt)
-        {
-           logHelper = new TNTLogHelper();
-           logHelper.onPrimed(x, y, z, h);
+    @Inject(method = "<init>(Lnet/minecraft/world/World;DDDLnet/minecraft/entity/EntityLivingBase;)V",
+            at = @At(value = "RETURN"))
+    private void loggerRegistryTNT(World worldIn, double x, double y, double z, EntityLivingBase igniter, CallbackInfo ci) {
+        float h = (float) (Math.random() * (Math.PI * 2D));
+        if (LoggerRegistry.__tnt) {
+            logHelper = new TNTLogHelper();
+            logHelper.onPrimed(x, y, z, h);
         }
     }
 
     @Inject(method = "explode", at = @At(value = "HEAD"))
-    private void loggerRegistryTNTOnExplode(CallbackInfo ci){
+    private void loggerRegistryTNTOnExplode(CallbackInfo ci) {
         if (LoggerRegistry.__tnt && logHelper != null)
             logHelper.onExploded(posX, posY, posZ);
     }

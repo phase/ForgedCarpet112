@@ -1,7 +1,7 @@
 package carpet.forge.mixin;
 
 import carpet.forge.CarpetSettings;
-import carpet.forge.utils.mixininterfaces.IMixinEntityLiving;
+import carpet.forge.interfaces.IMixinEntityLiving;
 import carpet.forge.utils.SpawnReporter;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.*;
@@ -40,48 +40,36 @@ public abstract class MixinWorldEntitySpawner {
     }
 
     /**
-     * @author
-     * DeadlyMc
-     * @reason
-     * Had to overwrite this method as there were issues with variable
+     * @author DeadlyMc
+     * @reason Had to overwrite this method as there were issues with variable
      * handling using mixins.
      */
     @Overwrite()
-    public int findChunksForSpawning(WorldServer worldServerIn, boolean spawnHostileMobs, boolean spawnPeacefulMobs, boolean spawnOnSetTickRate){
-        if (!spawnHostileMobs && !spawnPeacefulMobs)
-        {
+    public int findChunksForSpawning(WorldServer worldServerIn, boolean spawnHostileMobs, boolean spawnPeacefulMobs, boolean spawnOnSetTickRate) {
+        if (!spawnHostileMobs && !spawnPeacefulMobs) {
             return 0;
-        }
-        else
-        {
+        } else {
             this.eligibleChunksForSpawning.clear();
             int i = 0;
 
-            for (EntityPlayer entityplayer : worldServerIn.playerEntities)
-            {
-                if (!entityplayer.isSpectator())
-                {
+            for (EntityPlayer entityplayer : worldServerIn.playerEntities) {
+                if (!entityplayer.isSpectator()) {
                     int j = MathHelper.floor(entityplayer.posX / 16.0D);
                     int k = MathHelper.floor(entityplayer.posZ / 16.0D);
                     int l = 8;
 
-                    for (int i1 = -8; i1 <= 8; ++i1)
-                    {
-                        for (int j1 = -8; j1 <= 8; ++j1)
-                        {
+                    for (int i1 = -8; i1 <= 8; ++i1) {
+                        for (int j1 = -8; j1 <= 8; ++j1) {
                             boolean flag = i1 == -8 || i1 == 8 || j1 == -8 || j1 == 8;
                             ChunkPos chunkpos = new ChunkPos(i1 + j, j1 + k);
 
-                            if (!this.eligibleChunksForSpawning.contains(chunkpos))
-                            {
+                            if (!this.eligibleChunksForSpawning.contains(chunkpos)) {
                                 ++i;
 
-                                if (!flag && worldServerIn.getWorldBorder().contains(chunkpos))
-                                {
+                                if (!flag && worldServerIn.getWorldBorder().contains(chunkpos)) {
                                     PlayerChunkMapEntry playerchunkmapentry = worldServerIn.getPlayerChunkMap().getEntry(chunkpos.x, chunkpos.z);
 
-                                    if (playerchunkmapentry != null && playerchunkmapentry.isSentToPlayers())
-                                    {
+                                    if (playerchunkmapentry != null && playerchunkmapentry.isSentToPlayers()) {
                                         this.eligibleChunksForSpawning.add(chunkpos);
                                     }
                                 }
@@ -92,8 +80,9 @@ public abstract class MixinWorldEntitySpawner {
             }
 
             // [FCM] Start
-            boolean optimizedDespawnRange = CarpetSettings.getBool("optimizedDespawnRange");;
-            if (i==0 && optimizedDespawnRange) // Worlds without valid chunks are skipped.
+            boolean optimizedDespawnRange = CarpetSettings.getBool("optimizedDespawnRange");
+            ;
+            if (i == 0 && optimizedDespawnRange) // Worlds without valid chunks are skipped.
             {
                 return 0;
             }
@@ -104,43 +93,39 @@ public abstract class MixinWorldEntitySpawner {
 
             // [FCM] Start
             int did = worldServerIn.provider.getDimensionType().getId();
-            String level_suffix = (did==0)?"":((did<0?" (N)":" (E)"));
+            String level_suffix = (did == 0) ? "" : ((did < 0 ? " (N)" : " (E)"));
             // [FCM] End
 
-            for (EnumCreatureType enumcreaturetype : EnumCreatureType.values())
-            {
+            for (EnumCreatureType enumcreaturetype : EnumCreatureType.values()) {
                 // [FCM] Start
                 String type_code = String.format("%s", enumcreaturetype);
-                String group_code = type_code+level_suffix;
-                if (SpawnReporter.track_spawns > 0L)
-                {
+                String group_code = type_code + level_suffix;
+                if (SpawnReporter.track_spawns > 0L) {
                     SpawnReporter.overall_spawn_ticks.put(group_code, SpawnReporter.overall_spawn_ticks.get(group_code) + SpawnReporter.spawn_tries.get(type_code));
                 }
                 // [FCM] End
-                if ((!enumcreaturetype.getPeacefulCreature() || spawnPeacefulMobs) && (enumcreaturetype.getPeacefulCreature() || spawnHostileMobs) && (!enumcreaturetype.getAnimal() || spawnOnSetTickRate))
-                {
+                if ((!enumcreaturetype.getPeacefulCreature() || spawnPeacefulMobs) && (enumcreaturetype.getPeacefulCreature() || spawnHostileMobs) && (!enumcreaturetype.getAnimal() || spawnOnSetTickRate)) {
                     int k4 = worldServerIn.countEntities(enumcreaturetype, true);
                     //[FCM] Replaced:
                     // int l4 = enumcreaturetype.getMaxNumberOfCreature() * i / MOB_COUNT_DIV;
-                    int l4 = (int)(Math.pow(2.0,(SpawnReporter.mobcap_exponent/4)) * enumcreaturetype.getMaxNumberOfCreature() * i / MOB_COUNT_DIV);
+                    int l4 = (int) (Math.pow(2.0, (SpawnReporter.mobcap_exponent / 4)) * enumcreaturetype.getMaxNumberOfCreature() * i / MOB_COUNT_DIV);
                     SpawnReporter.mobcaps.get(did).put(enumcreaturetype, new Tuple<>(k4, l4));
                     int tries = SpawnReporter.spawn_tries.get(type_code);
-                    if (SpawnReporter.track_spawns > 0L)
-                    {
+                    if (SpawnReporter.track_spawns > 0L) {
                         SpawnReporter.spawn_attempts.put(group_code, SpawnReporter.spawn_attempts.get(group_code) + tries);
                         SpawnReporter.spawn_cap_count.put(group_code, SpawnReporter.spawn_cap_count.get(group_code) + k4);
                     }
-                    if (SpawnReporter.mock_spawns) { k4 = 0; } // No mobcaps
+                    if (SpawnReporter.mock_spawns) {
+                        k4 = 0;
+                    } // No mobcaps
                     // [FCM] End
 
-                    if (k4 <= l4)
-                    {
+                    if (k4 <= l4) {
                         java.util.ArrayList<ChunkPos> shuffled = com.google.common.collect.Lists.newArrayList(this.eligibleChunksForSpawning);
                         java.util.Collections.shuffle(shuffled);
                         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
                         // [FCM] Extra indentation -- Start.
-                        for (int trie = 0; trie < tries; trie++)
-                        {
+                        for (int trie = 0; trie < tries; trie++) {
                             // [FCM] New variable long.
                             long local_spawns = 0;
 
@@ -204,21 +189,15 @@ public abstract class MixinWorldEntitySpawner {
                                                             if (optimizedDespawnRange && ((IMixinEntityLiving) entityliving).willImmediatelyDespawn()) // Added optimized despawn mobs causing netlag by Luflosi
                                                             {
                                                                 entityliving.setDead();
-                                                            }
-                                                            else
-                                                            {
+                                                            } else {
                                                                 ++local_spawns;
-                                                                if (SpawnReporter.track_spawns > 0L)
-                                                                {
+                                                                if (SpawnReporter.track_spawns > 0L) {
                                                                     String species = EntityList.getEntityString(entityliving);
                                                                     SpawnReporter.registerSpawn(entityliving, type_code, species, blockpos$mutableblockpos);
                                                                 }
-                                                                if (SpawnReporter.mock_spawns)
-                                                                {
+                                                                if (SpawnReporter.mock_spawns) {
                                                                     entityliving.setDead();
-                                                                }
-                                                                else
-                                                                {
+                                                                } else {
                                                                     worldServerIn.spawnEntity(entityliving);
                                                                 }
                                                                 // [FCM] End
@@ -241,25 +220,19 @@ public abstract class MixinWorldEntitySpawner {
                             }
 
                             // [FCM] SpawnReporter
-                            if (SpawnReporter.track_spawns > 0L)
-                            {
-                                if (local_spawns > 0)
-                                {
+                            if (SpawnReporter.track_spawns > 0L) {
+                                if (local_spawns > 0) {
                                     SpawnReporter.spawn_ticks_succ.put(group_code, SpawnReporter.spawn_ticks_succ.get(group_code) + 1L);
                                     SpawnReporter.spawn_ticks_spawns.put(group_code, SpawnReporter.spawn_ticks_spawns.get(group_code) + local_spawns);
-                                }
-                                else
-                                {
+                                } else {
                                     SpawnReporter.spawn_ticks_fail.put(group_code, SpawnReporter.spawn_ticks_fail.get(group_code) + 1L);
                                 }
                             }
 
                         } // [FCM] Extra indentation -- End.
-                    }
-                    else // [FCM] Full mobcap.
+                    } else // [FCM] Full mobcap.
                     {
-                        if (SpawnReporter.track_spawns > 0L)
-                        {
+                        if (SpawnReporter.track_spawns > 0L) {
                             SpawnReporter.spawn_ticks_full.put(group_code, SpawnReporter.spawn_ticks_full.get(group_code) + SpawnReporter.spawn_tries.get(type_code));
                         }
                     }

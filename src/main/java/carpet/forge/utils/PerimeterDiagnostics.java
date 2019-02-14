@@ -19,33 +19,31 @@ import net.minecraft.world.biome.Biome;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PerimeterDiagnostics
-{
-    public static class Result
-    {
+public class PerimeterDiagnostics {
+    public static class Result {
         public int liquid;
         public int ground;
         public int specific;
         public List<BlockPos> samples;
-        Result()
-        {
+
+        Result() {
             samples = new ArrayList<>();
         }
     }
+
     private Biome.SpawnListEntry sle;
     private WorldServer worldServer;
     private EnumCreatureType ctype;
     private EntityLiving el;
-    private PerimeterDiagnostics(WorldServer server, EnumCreatureType ctype, EntityLiving el)
-    {
+
+    private PerimeterDiagnostics(WorldServer server, EnumCreatureType ctype, EntityLiving el) {
         this.sle = null;
         this.worldServer = server;
         this.ctype = ctype;
         this.el = el;
     }
 
-    public static Result countSpots(WorldServer worldserver, BlockPos epos, EntityLiving el)
-    {
+    public static Result countSpots(WorldServer worldserver, BlockPos epos, EntityLiving el) {
         BlockPos pos;
         //List<BlockPos> samples = new ArrayList<BlockPos>();
         //if (el != null) CarpetSettings.LOG.error(String.format("Got %s to check",el.toString()));
@@ -61,80 +59,58 @@ public class PerimeterDiagnostics
         boolean add_ground = false;
         EnumCreatureType ctype = null;
 
-        if (el != null)
-        {
-            if (el instanceof EntityWaterMob)
-            {
+        if (el != null) {
+            if (el instanceof EntityWaterMob) {
                 add_water = true;
                 ctype = EnumCreatureType.WATER_CREATURE;
-            }
-            else if (el instanceof EntityAnimal)
-            {
+            } else if (el instanceof EntityAnimal) {
                 add_ground = true;
                 ctype = EnumCreatureType.CREATURE;
-            }
-            else if (el instanceof IMob)
-            {
+            } else if (el instanceof IMob) {
                 add_ground = true;
                 ctype = EnumCreatureType.MONSTER;
-            }
-            else if (el instanceof EntityAmbientCreature)
-            {
+            } else if (el instanceof EntityAmbientCreature) {
                 ctype = EnumCreatureType.AMBIENT;
             }
         }
-        PerimeterDiagnostics diagnostic = new PerimeterDiagnostics(worldserver,ctype,el);
-        for (int x = -128; x <= 128; ++x)
-        {
-            for (int z = -128; z <= 128; ++z)
-            {
-                if (x*x + z*z > 128*128) // cut out a cyllinder first
+        PerimeterDiagnostics diagnostic = new PerimeterDiagnostics(worldserver, ctype, el);
+        for (int x = -128; x <= 128; ++x) {
+            for (int z = -128; z <= 128; ++z) {
+                if (x * x + z * z > 128 * 128) // cut out a cyllinder first
                 {
                     continue;
                 }
-                for (int y= 0; y < 256; ++y)
-                {
-                    if ((Math.abs(y-eY)>128) )
-                    {
+                for (int y = 0; y < 256; ++y) {
+                    if ((Math.abs(y - eY) > 128)) {
                         continue;
                     }
-                    int distsq = (x)*(x)+(eY-y)*(eY-y)+(z)*(z);
-                    if (distsq > 128*128 || distsq < 24*24)
-                    {
+                    int distsq = (x) * (x) + (eY - y) * (eY - y) + (z) * (z);
+                    if (distsq > 128 * 128 || distsq < 24 * 24) {
                         continue;
                     }
-                    pos = new BlockPos(eX+x, y, eZ+z);
+                    pos = new BlockPos(eX + x, y, eZ + z);
 
                     IBlockState iblockstate = worldserver.getBlockState(pos);
                     IBlockState iblockstate_down = worldserver.getBlockState(pos.down());
                     IBlockState iblockstate_up = worldserver.getBlockState(pos.up());
 
-                    if ( iblockstate.getMaterial() == Material.WATER && iblockstate_down.getMaterial() == Material.WATER && !iblockstate_up.isNormalCube())
-                    {
+                    if (iblockstate.getMaterial() == Material.WATER && iblockstate_down.getMaterial() == Material.WATER && !iblockstate_up.isNormalCube()) {
                         result.liquid++;
-                        if (add_water && diagnostic.check_entity_spawn(pos))
-                        {
+                        if (add_water && diagnostic.check_entity_spawn(pos)) {
                             result.specific++;
-                            if (result.samples.size() < 10)
-                            {
+                            if (result.samples.size() < 10) {
                                 result.samples.add(pos);
                             }
                         }
-                    }
-                    else
-                    {
-                        if (iblockstate_down.isOpaqueCube())
-                        {
+                    } else {
+                        if (iblockstate_down.isOpaqueCube()) {
                             Block block = iblockstate_down.getBlock();
                             boolean flag = block != Blocks.BEDROCK && block != Blocks.BARRIER;
-                            if( flag && WorldEntitySpawner.isValidEmptySpawnBlock(iblockstate) && WorldEntitySpawner.isValidEmptySpawnBlock(iblockstate_up))
-                            {
-                                result.ground ++;
-                                if (add_ground && diagnostic.check_entity_spawn(pos))
-                                {
+                            if (flag && WorldEntitySpawner.isValidEmptySpawnBlock(iblockstate) && WorldEntitySpawner.isValidEmptySpawnBlock(iblockstate_up)) {
+                                result.ground++;
+                                if (add_ground && diagnostic.check_entity_spawn(pos)) {
                                     result.specific++;
-                                    if (result.samples.size() < 10)
-                                    {
+                                    if (result.samples.size() < 10) {
                                         result.samples.add(pos);
                                     }
                                 }
@@ -152,28 +128,22 @@ public class PerimeterDiagnostics
     }
 
 
-    private boolean check_entity_spawn(BlockPos pos)
-    {
-        if (sle == null || !worldServer.canCreatureTypeSpawnHere(ctype, sle, pos))
-        {
+    private boolean check_entity_spawn(BlockPos pos) {
+        if (sle == null || !worldServer.canCreatureTypeSpawnHere(ctype, sle, pos)) {
             sle = null;
-            for (Biome.SpawnListEntry sle: worldServer.getChunkProvider().getPossibleCreatures(ctype, pos))
-            {
-                if (el.getClass() == sle.entityClass)
-                {
+            for (Biome.SpawnListEntry sle : worldServer.getChunkProvider().getPossibleCreatures(ctype, pos)) {
+                if (el.getClass() == sle.entityClass) {
                     this.sle = sle;
                     break;
                 }
             }
-            if (sle == null || !worldServer.canCreatureTypeSpawnHere(ctype, sle, pos))
-            {
+            if (sle == null || !worldServer.canCreatureTypeSpawnHere(ctype, sle, pos)) {
                 return false;
             }
         }
 
-        if (WorldEntitySpawner.canCreatureTypeSpawnAtLocation(EntitySpawnPlacementRegistry.getPlacementForEntity(sle.entityClass), worldServer, pos))
-        {
-            el.setLocationAndAngles((float)pos.getX() + 0.5F, (float)pos.getY(), (float)pos.getZ()+0.5F, 0.0F, 0.0F);
+        if (WorldEntitySpawner.canCreatureTypeSpawnAtLocation(EntitySpawnPlacementRegistry.getPlacementForEntity(sle.entityClass), worldServer, pos)) {
+            el.setLocationAndAngles((float) pos.getX() + 0.5F, (float) pos.getY(), (float) pos.getZ() + 0.5F, 0.0F, 0.0F);
             return el.getCanSpawnHere() && el.isNotColliding();
         }
         return false;

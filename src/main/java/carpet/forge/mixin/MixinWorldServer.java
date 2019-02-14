@@ -2,11 +2,11 @@ package carpet.forge.mixin;
 
 import carpet.forge.CarpetSettings;
 import carpet.forge.helper.TickSpeed;
+import carpet.forge.interfaces.IWorld;
+import carpet.forge.interfaces.IWorldServer;
 import carpet.forge.logging.LoggerRegistry;
 import carpet.forge.utils.CarpetProfiler;
 import carpet.forge.utils.Messenger;
-import carpet.forge.utils.mixininterfaces.IWorld;
-import carpet.forge.utils.mixininterfaces.IWorldServer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -80,21 +80,17 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
      * Changes are highlighted with comments
      */
     @Overwrite
-    public void tick()
-    {
+    public void tick() {
         super.tick();
 
-        if (this.getWorldInfo().isHardcoreModeEnabled() && this.getDifficulty() != EnumDifficulty.HARD)
-        {
+        if (this.getWorldInfo().isHardcoreModeEnabled() && this.getDifficulty() != EnumDifficulty.HARD) {
             this.getWorldInfo().setDifficulty(EnumDifficulty.HARD);
         }
 
         this.provider.getBiomeProvider().cleanupCache();
 
-        if (this.areAllPlayersAsleep())
-        {
-            if (this.getGameRules().getBoolean("doDaylightCycle"))
-            {
+        if (this.areAllPlayersAsleep()) {
+            if (this.getGameRules().getBoolean("doDaylightCycle")) {
                 long i = this.getWorldTime() + 24000L;
                 this.setWorldTime(i - i % 24000L);
             }
@@ -120,8 +116,7 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
         this.chunkProvider.tick();
         int j = this.calculateSkylightSubtracted(1.0F);
 
-        if (j != this.getSkylightSubtracted())
-        {
+        if (j != this.getSkylightSubtracted()) {
             this.setSkylightSubtracted(j);
         }
 
@@ -157,13 +152,11 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
             this.worldTeleporter.removeStalePortalLocations(this.getTotalWorldTime());
         } // [FCM] End
 
-        for (Teleporter tele : customTeleporters)
-        {
+        for (Teleporter tele : customTeleporters) {
             tele.removeStalePortalLocations(getTotalWorldTime());
         }
         // [FCM] Newlight
-        if (CarpetSettings.newLight)
-        {
+        if (CarpetSettings.newLight) {
             this.profiler.endStartSection("lighting");
             ((IWorld) this).getLightingEngine().procLightUpdates();
         }
@@ -178,28 +171,22 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
      * Changes are highlighted with comments
      */
     @Overwrite
-    protected void updateBlocks()
-    {
+    protected void updateBlocks() {
         this.playerCheckLight();
 
-        if (this.worldInfo.getTerrainType() == WorldType.DEBUG_ALL_BLOCK_STATES)
-        {
+        if (this.worldInfo.getTerrainType() == WorldType.DEBUG_ALL_BLOCK_STATES) {
             Iterator<Chunk> iterator1 = this.playerChunkMap.getChunkIterator();
 
-            while (iterator1.hasNext())
-            {
-                ((Chunk)iterator1.next()).onTick(false);
+            while (iterator1.hasNext()) {
+                ((Chunk) iterator1.next()).onTick(false);
             }
-        }
-        else
-        {
+        } else {
             int i = this.getGameRules().getInt("randomTickSpeed");
             boolean flag = this.isRaining();
             boolean flag1 = this.isThundering();
             this.profiler.startSection("pollingChunks");
 
-            for (Iterator<Chunk> iterator = getPersistentChunkIterable(this.playerChunkMap.getChunkIterator()); iterator.hasNext(); this.profiler.endSection())
-            {
+            for (Iterator<Chunk> iterator = getPersistentChunkIterable(this.playerChunkMap.getChunkIterator()); iterator.hasNext(); this.profiler.endSection()) {
                 this.profiler.startSection("getChunk");
                 Chunk chunk = iterator.next();
                 int j = chunk.x * 16;
@@ -208,75 +195,61 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
                 chunk.enqueueRelightChecks();
                 this.profiler.endStartSection("tickChunk");
                 chunk.onTick(false);
-                if (!TickSpeed.process_entities)
-                { // [FCM] Skipping the rest of the block processing
+                if (!TickSpeed.process_entities) { // [FCM] Skipping the rest of the block processing
                     this.profiler.endSection();
                     continue;
                 }
                 this.profiler.endStartSection("thunder");
 
-                if (this.provider.canDoLightning(chunk) && flag && flag1 && this.rand.nextInt(100000) == 0)
-                {
+                if (this.provider.canDoLightning(chunk) && flag && flag1 && this.rand.nextInt(100000) == 0) {
                     this.updateLCG = this.updateLCG * 3 + 1013904223;
                     int l = this.updateLCG >> 2;
                     BlockPos blockpos = this.adjustPosToNearbyEntity(new BlockPos(j + (l & 15), 0, k + (l >> 8 & 15)));
 
-                    if (this.isRainingAt(blockpos))
-                    {
+                    if (this.isRainingAt(blockpos)) {
                         DifficultyInstance difficultyinstance = this.getDifficultyForLocation(blockpos);
 
-                        if (this.getGameRules().getBoolean("doMobSpawning") && this.rand.nextDouble() < (double)difficultyinstance.getAdditionalDifficulty() * 0.01D)
-                        {
+                        if (this.getGameRules().getBoolean("doMobSpawning") && this.rand.nextDouble() < (double) difficultyinstance.getAdditionalDifficulty() * 0.01D) {
                             EntitySkeletonHorse entityskeletonhorse = new EntitySkeletonHorse(this);
                             entityskeletonhorse.setTrap(true);
                             entityskeletonhorse.setGrowingAge(0);
-                            entityskeletonhorse.setPosition((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ());
+                            entityskeletonhorse.setPosition((double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ());
                             this.spawnEntity(entityskeletonhorse);
-                            this.addWeatherEffect(new EntityLightningBolt(this, (double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), true));
-                        }
-                        else
-                        {
-                            this.addWeatherEffect(new EntityLightningBolt(this, (double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), false));
+                            this.addWeatherEffect(new EntityLightningBolt(this, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ(), true));
+                        } else {
+                            this.addWeatherEffect(new EntityLightningBolt(this, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ(), false));
                         }
                     }
                 }
 
                 this.profiler.endStartSection("iceandsnow");
 
-                if (this.provider.canDoRainSnowIce(chunk) && this.rand.nextInt(16) == 0)
-                {
+                if (this.provider.canDoRainSnowIce(chunk) && this.rand.nextInt(16) == 0) {
                     this.updateLCG = this.updateLCG * 3 + 1013904223;
                     int j2 = this.updateLCG >> 2;
                     BlockPos blockpos1 = this.getPrecipitationHeight(new BlockPos(j + (j2 & 15), 0, k + (j2 >> 8 & 15)));
                     BlockPos blockpos2 = blockpos1.down();
 
                     if (this.isAreaLoaded(blockpos2, 1)) // Forge: check area to avoid loading neighbors in unloaded chunks
-                        if (this.canBlockFreezeNoWater(blockpos2))
-                        {
+                        if (this.canBlockFreezeNoWater(blockpos2)) {
                             this.setBlockState(blockpos2, Blocks.ICE.getDefaultState());
                         }
 
-                    if (flag && this.canSnowAt(blockpos1, true))
-                    {
+                    if (flag && this.canSnowAt(blockpos1, true)) {
                         this.setBlockState(blockpos1, Blocks.SNOW_LAYER.getDefaultState());
                     }
 
-                    if (flag && this.getBiome(blockpos2).canRain())
-                    {
+                    if (flag && this.getBiome(blockpos2).canRain()) {
                         this.getBlockState(blockpos2).getBlock().fillWithRain(this, blockpos2);
                     }
                 }
 
                 this.profiler.endStartSection("tickBlocks");
 
-                if (i > 0)
-                {
-                    for (ExtendedBlockStorage extendedblockstorage : chunk.getBlockStorageArray())
-                    {
-                        if (extendedblockstorage != Chunk.NULL_BLOCK_STORAGE && extendedblockstorage.needsRandomTick())
-                        {
-                            for (int i1 = 0; i1 < i; ++i1)
-                            {
+                if (i > 0) {
+                    for (ExtendedBlockStorage extendedblockstorage : chunk.getBlockStorageArray()) {
+                        if (extendedblockstorage != Chunk.NULL_BLOCK_STORAGE && extendedblockstorage.needsRandomTick()) {
+                            for (int i1 = 0; i1 < i; ++i1) {
                                 this.updateLCG = this.updateLCG * 3 + 1013904223;
                                 int j1 = this.updateLCG >> 2;
                                 int k1 = j1 & 15;
@@ -286,8 +259,7 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
                                 Block block = iblockstate.getBlock();
                                 this.profiler.startSection("randomTick");
 
-                                if (block.getTickRandomly())
-                                {
+                                if (block.getTickRandomly()) {
                                     block.randomTick(this, new BlockPos(k1 + j, i2 + extendedblockstorage.getYLocation(), l1 + k), iblockstate, this.rand);
                                 }
 
@@ -308,29 +280,21 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
      * FOR : TileTickLimit logger and rule
      */
     @Overwrite
-    public boolean tickUpdates(boolean runAllPending)
-    {
-        if (this.worldInfo.getTerrainType() == WorldType.DEBUG_ALL_BLOCK_STATES)
-        {
+    public boolean tickUpdates(boolean runAllPending) {
+        if (this.worldInfo.getTerrainType() == WorldType.DEBUG_ALL_BLOCK_STATES) {
             return false;
-        }
-        else
-        {
+        } else {
             int i = this.pendingTickListEntriesTreeSet.size();
 
-            if (i != this.pendingTickListEntriesHashSet.size())
-            {
+            if (i != this.pendingTickListEntriesHashSet.size()) {
                 throw new IllegalStateException("TickNextTick list out of synch");
-            }
-            else
-            {
+            } else {
                 // [FCM] TileTickLimit - start
                 int tileTickLimit = CarpetSettings.tileTickLimit;
-                if (tileTickLimit >= 0 && i > tileTickLimit)
-                {
+                if (tileTickLimit >= 0 && i > tileTickLimit) {
                     if (LoggerRegistry.__tileTickLimit) {
                         final int fi = i;
-                        LoggerRegistry.getLogger("tileTickLimit").log(() -> new ITextComponent[] {
+                        LoggerRegistry.getLogger("tileTickLimit").log(() -> new ITextComponent[]{
                                         Messenger.s(null, String.format("Reached tile tick limit (%d > %d)", fi, tileTickLimit))
                                 },
                                 "NUMBER", i,
@@ -342,12 +306,10 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
 
                 this.profiler.startSection("cleaning");
 
-                for (int j = 0; j < i; ++j)
-                {
+                for (int j = 0; j < i; ++j) {
                     NextTickListEntry nextticklistentry = this.pendingTickListEntriesTreeSet.first();
 
-                    if (!runAllPending && nextticklistentry.scheduledTime > this.worldInfo.getWorldTotalTime())
-                    {
+                    if (!runAllPending && nextticklistentry.scheduledTime > this.worldInfo.getWorldTotalTime()) {
                         break;
                     }
 
@@ -360,8 +322,7 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
                 this.profiler.startSection("ticking");
                 Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesThisTick.iterator();
 
-                while (iterator.hasNext())
-                {
+                while (iterator.hasNext()) {
                     NextTickListEntry nextticklistentry1 = iterator.next();
                     iterator.remove();
                     //Keeping here as a note for future when it may be restored.
@@ -369,27 +330,20 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
                     //byte b0 = isForced ? 0 : 8;
                     int k = 0;
 
-                    if (this.isAreaLoaded(nextticklistentry1.position.add(0, 0, 0), nextticklistentry1.position.add(0, 0, 0)))
-                    {
+                    if (this.isAreaLoaded(nextticklistentry1.position.add(0, 0, 0), nextticklistentry1.position.add(0, 0, 0))) {
                         IBlockState iblockstate = this.getBlockState(nextticklistentry1.position);
 
-                        if (iblockstate.getMaterial() != Material.AIR && Block.isEqualTo(iblockstate.getBlock(), nextticklistentry1.getBlock()))
-                        {
-                            try
-                            {
+                        if (iblockstate.getMaterial() != Material.AIR && Block.isEqualTo(iblockstate.getBlock(), nextticklistentry1.getBlock())) {
+                            try {
                                 iblockstate.getBlock().updateTick(this, nextticklistentry1.position, iblockstate, this.rand);
-                            }
-                            catch (Throwable throwable)
-                            {
+                            } catch (Throwable throwable) {
                                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception while ticking a block");
                                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Block being ticked");
                                 CrashReportCategory.addBlockInfo(crashreportcategory, nextticklistentry1.position, iblockstate);
                                 throw new ReportedException(crashreport);
                             }
                         }
-                    }
-                    else
-                    {
+                    } else {
                         this.scheduleUpdate(nextticklistentry1.position, nextticklistentry1.getBlock(), 0);
                     }
                 }
@@ -402,21 +356,18 @@ public abstract class MixinWorldServer extends World implements IWorldServer {
     }
 
     // [FCM] Fix for pistonGhostBlocks breaking caterpillar engine - start
-    @Inject(method ="tick", at = @At("HEAD"))
-    private void resetBlockActionsProcessed(CallbackInfo ci)
-    {
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void resetBlockActionsProcessed(CallbackInfo ci) {
         this.blockActionsProcessed = false;
     }
 
     @Inject(method = "sendQueuedBlockEvents", at = @At("RETURN"))
-    private void setBlockActionsProcessed(CallbackInfo ci)
-    {
+    private void setBlockActionsProcessed(CallbackInfo ci) {
         this.blockActionsProcessed = true;
     }
 
     @Override
-    public boolean haveBlockActionsProcessed()
-    {
+    public boolean haveBlockActionsProcessed() {
         return this.blockActionsProcessed;
     }
     // [FCM] Fix for pistonGhostBlocks breaking caterpillar engine - end

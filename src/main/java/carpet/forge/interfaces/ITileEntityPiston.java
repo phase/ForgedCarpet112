@@ -1,6 +1,7 @@
-package carpet.forge.utils.mixininterfaces;
+package carpet.forge.interfaces;
 
 public interface ITileEntityPiston {
     long getLastTicked();
+
     float getLastProgress();
 }

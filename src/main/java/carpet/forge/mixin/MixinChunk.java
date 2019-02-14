@@ -1,9 +1,9 @@
 package carpet.forge.mixin;
 
 import carpet.forge.CarpetSettings;
+import carpet.forge.interfaces.IChunk;
+import carpet.forge.interfaces.IWorld;
 import carpet.forge.utils.LightingHooks;
-import carpet.forge.utils.mixininterfaces.IChunk;
-import carpet.forge.utils.mixininterfaces.IWorld;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -83,25 +83,19 @@ public abstract class MixinChunk implements IChunk {
      * @reason if statement arounds
      */
     @Overwrite
-    public void generateSkylightMap()
-    {
+    public void generateSkylightMap() {
         int i = this.getTopFilledSegment();
         this.heightMapMinimum = Integer.MAX_VALUE;
 
-        for (int j = 0; j < 16; ++j)
-        {
-            for (int k = 0; k < 16; ++k)
-            {
+        for (int j = 0; j < 16; ++j) {
+            for (int k = 0; k < 16; ++k) {
                 this.precipitationHeightMap[j + (k << 4)] = -999;
 
-                for (int l = i + 16; l > 0; --l)
-                {
-                    if (this.getBlockLightOpacity(j, l - 1, k) != 0)
-                    {
+                for (int l = i + 16; l > 0; --l) {
+                    if (this.getBlockLightOpacity(j, l - 1, k) != 0) {
                         this.heightMap[k << 4 | j] = l;
 
-                        if (l < this.heightMapMinimum)
-                        {
+                        if (l < this.heightMapMinimum) {
                             this.heightMapMinimum = l;
                         }
 
@@ -109,14 +103,11 @@ public abstract class MixinChunk implements IChunk {
                     }
                 }
 
-                if (this.world.provider.hasSkyLight())
-                {
+                if (this.world.provider.hasSkyLight()) {
                     // [FCM] Newlight -- if statement around
                     if (CarpetSettings.newLight) {
-                        LightingHooks.fillSkylightColumn((Chunk)(Object)this, j, k);
-                    }
-                    else
-                    {
+                        LightingHooks.fillSkylightColumn((Chunk) (Object) this, j, k);
+                    } else {
                         int k1 = 15;
                         int i1 = i + 16 - 1;
 
@@ -158,33 +149,26 @@ public abstract class MixinChunk implements IChunk {
      * @reason if statement arounds
      */
     @Overwrite
-    private void relightBlock(int x, int y, int z)
-    {
+    private void relightBlock(int x, int y, int z) {
         // [FCM] Newlight -- Changed variable 'i' according to if statement
         int i;
-        if (CarpetSettings.newLight)
-        {
+        if (CarpetSettings.newLight) {
             i = this.heightMap[z << 4 | x];
-        }
-        else
-        {
+        } else {
             i = this.heightMap[z << 4 | x] & 255;
         }
         // [FCM] End
         int j = i;
 
-        if (y > i)
-        {
+        if (y > i) {
             j = y;
         }
 
-        while (j > 0 && this.getBlockLightOpacity(x, j - 1, z) == 0)
-        {
+        while (j > 0 && this.getBlockLightOpacity(x, j - 1, z) == 0) {
             --j;
         }
 
-        if (j != i)
-        {
+        if (j != i) {
             // [FCM] Newlight -- Optimization
             if (!CarpetSettings.newLight)
                 // Forge: Useless, since heightMap is not updated yet
@@ -193,18 +177,14 @@ public abstract class MixinChunk implements IChunk {
             int k = this.x * 16 + x;
             int l = this.z * 16 + z;
 
-            if (this.world.provider.hasSkyLight())
-            {
+            if (this.world.provider.hasSkyLight()) {
                 // [FCM] Newlight -- Optimization
                 if (CarpetSettings.newLight) {
                     LightingHooks.relightSkylightColumn(this.world, (Chunk) (Object) this, x, z, i, j); //Forge: Optimized version of World.markBlocksDirtyVertical; heightMap is now updated
-                }
-                else // Don't mess up the light cache; World.checkLight already does all necessary steps
+                } else // Don't mess up the light cache; World.checkLight already does all necessary steps
                 {
-                    if (j < i)
-                    {
-                        for (int j1 = j; j1 < i; ++j1)
-                        {
+                    if (j < i) {
+                        for (int j1 = j; j1 < i; ++j1) {
                             ExtendedBlockStorage extendedblockstorage2 = this.storageArrays[j1 >> 4];
 
                             if (extendedblockstorage2 != NULL_BLOCK_STORAGE) {
@@ -213,8 +193,7 @@ public abstract class MixinChunk implements IChunk {
                             }
                         }
                     } else {
-                        for (int i1 = i; i1 < j; ++i1)
-                        {
+                        for (int i1 = i; i1 < j; ++i1) {
                             ExtendedBlockStorage extendedblockstorage = this.storageArrays[i1 >> 4];
 
                             if (extendedblockstorage != NULL_BLOCK_STORAGE) {
@@ -226,27 +205,23 @@ public abstract class MixinChunk implements IChunk {
 
                     int k1 = 15;
 
-                    while (j > 0 && k1 > 0)
-                    {
+                    while (j > 0 && k1 > 0) {
                         --j;
                         int i2 = this.getBlockLightOpacity(x, j, z);
 
-                        if (i2 == 0)
-                        {
+                        if (i2 == 0) {
                             i2 = 1;
                         }
 
                         k1 -= i2;
 
-                        if (k1 < 0)
-                        {
+                        if (k1 < 0) {
                             k1 = 0;
                         }
 
                         ExtendedBlockStorage extendedblockstorage1 = this.storageArrays[j >> 4];
 
-                        if (extendedblockstorage1 != NULL_BLOCK_STORAGE)
-                        {
+                        if (extendedblockstorage1 != NULL_BLOCK_STORAGE) {
                             extendedblockstorage1.setSkyLight(x, j & 15, z, k1);
                         }
                     }
@@ -258,27 +233,23 @@ public abstract class MixinChunk implements IChunk {
             int j2 = i;
             int k2 = l1;
 
-            if (l1 < i)
-            {
+            if (l1 < i) {
                 j2 = l1;
                 k2 = i;
             }
 
-            if (l1 < this.heightMapMinimum)
-            {
+            if (l1 < this.heightMapMinimum) {
                 this.heightMapMinimum = l1;
             }
 
             // [FCM] NewLight -- Optimization
-            if (CarpetSettings.newLight){
+            if (CarpetSettings.newLight) {
                 this.dirty = true;
                 return; //Forge: Following checks are not needed if the light cache is not messed up
             }
 
-            if (this.world.provider.hasSkyLight())
-            {
-                for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL)
-                {
+            if (this.world.provider.hasSkyLight()) {
+                for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
                     this.updateSkylightNeighborHeight(k + enumfacing.getXOffset(), l + enumfacing.getZOffset(), j2, k2);
                 }
 
@@ -291,7 +262,7 @@ public abstract class MixinChunk implements IChunk {
 
     // [FCM] Replace method with a carpet method
     @Inject(method = "setBlockState", at = @At("HEAD"), cancellable = true)
-    private void redirectToCarpetMethod(BlockPos pos, IBlockState state, CallbackInfoReturnable<IBlockState> cir){
+    private void redirectToCarpetMethod(BlockPos pos, IBlockState state, CallbackInfoReturnable<IBlockState> cir) {
         cir.setReturnValue(setBlockState_carpet(pos, state, false));
         cir.cancel();
     }
@@ -304,30 +275,24 @@ public abstract class MixinChunk implements IChunk {
         int k = pos.getZ() & 15;
         int l = k << 4 | i;
 
-        if (j >= this.precipitationHeightMap[l] - 1)
-        {
+        if (j >= this.precipitationHeightMap[l] - 1) {
             this.precipitationHeightMap[l] = -999;
         }
 
         int i1 = this.heightMap[l];
         IBlockState iblockstate = this.getBlockState(pos);
 
-        if (iblockstate == state)
-        {
+        if (iblockstate == state) {
             return null;
-        }
-        else
-        {
+        } else {
             Block block = state.getBlock();
             Block block1 = iblockstate.getBlock();
             int k1 = iblockstate.getLightOpacity(this.world, pos); // Relocate old light value lookup here, so that it is called before TE is removed.
             ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
             boolean flag = false;
 
-            if (extendedblockstorage == NULL_BLOCK_STORAGE)
-            {
-                if (block == Blocks.AIR)
-                {
+            if (extendedblockstorage == NULL_BLOCK_STORAGE) {
+                if (block == Blocks.AIR) {
                     return null;
                 }
 
@@ -335,8 +300,8 @@ public abstract class MixinChunk implements IChunk {
                 this.storageArrays[j >> 4] = extendedblockstorage;
                 flag = j >= i1;
                 // [FCM] Newlight
-                if (CarpetSettings.newLight){
-                    LightingHooks.initSkylightForSection(this.world, (Chunk)(Object)this, extendedblockstorage); //Forge: Always initialize sections properly (See #3870 and #3879)
+                if (CarpetSettings.newLight) {
+                    LightingHooks.initSkylightForSection(this.world, (Chunk) (Object) this, extendedblockstorage); //Forge: Always initialize sections properly (See #3870 and #3879)
                 }
             }
 
@@ -344,53 +309,39 @@ public abstract class MixinChunk implements IChunk {
 
             //if (block1 != block)
             {
-                if (!this.world.isRemote)
-                {
+                if (!this.world.isRemote) {
                     if (block1 != block) //Only fire block breaks when the block changes.
                         block1.breakBlock(this.world, pos, iblockstate);
                     TileEntity te = this.getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
-                    if (te != null && te.shouldRefresh(this.world, pos, iblockstate, state)) this.world.removeTileEntity(pos);
-                }
-                else if (block1.hasTileEntity(iblockstate))
-                {
+                    if (te != null && te.shouldRefresh(this.world, pos, iblockstate, state))
+                        this.world.removeTileEntity(pos);
+                } else if (block1.hasTileEntity(iblockstate)) {
                     TileEntity te = this.getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
                     if (te != null && te.shouldRefresh(this.world, pos, iblockstate, state))
                         this.world.removeTileEntity(pos);
                 }
             }
 
-            if (extendedblockstorage.get(i, j & 15, k).getBlock() != block)
-            {
+            if (extendedblockstorage.get(i, j & 15, k).getBlock() != block) {
                 return null;
-            }
-            else
-            {
+            } else {
                 // [FCM] Newlight -- Forge: Don't call generateSkylightMap (as it produces the wrong result; sections are initialized above). Never bypass relightBlock (See #3870)
-                if (!CarpetSettings.newLight && flag)
-                {
+                if (!CarpetSettings.newLight && flag) {
                     this.generateSkylightMap();
-                }
-                else
-                {
+                } else {
                     int j1 = state.getLightOpacity(this.world, pos);
 
-                    if (j1 > 0)
-                    {
-                        if (j >= i1)
-                        {
+                    if (j1 > 0) {
+                        if (j >= i1) {
                             this.relightBlock(i, j + 1, k);
                         }
-                    }
-                    else if (j == i1 - 1)
-                    {
+                    } else if (j == i1 - 1) {
                         this.relightBlock(i, j, k);
                     }
 
                     // [FCM] Newlight -- Forge: Error correction is unnecessary as these are fixed (See #3871)
-                    if (!CarpetSettings.newLight)
-                    {
-                        if (j1 != k1 && (j1 < k1 || this.getLightFor(EnumSkyBlock.SKY, pos) > 0 || this.getLightFor(EnumSkyBlock.BLOCK, pos) > 0))
-                        {
+                    if (!CarpetSettings.newLight) {
+                        if (j1 != k1 && (j1 < k1 || this.getLightFor(EnumSkyBlock.SKY, pos) > 0 || this.getLightFor(EnumSkyBlock.BLOCK, pos) > 0)) {
                             this.propagateSkylightOcclusion(i, k);
                         }
                     }
@@ -398,23 +349,19 @@ public abstract class MixinChunk implements IChunk {
 
                 // If capturing blocks, only run block physics for TE's. Non-TE's are handled in ForgeHooks.onPlaceItemIntoWorld
                 // [FCM] Added '!skip_updates' to if statement parameters
-                if (!skip_updates && !this.world.isRemote && block1 != block && (!this.world.captureBlockSnapshots || block.hasTileEntity(state)))
-                {
+                if (!skip_updates && !this.world.isRemote && block1 != block && (!this.world.captureBlockSnapshots || block.hasTileEntity(state))) {
                     block.onBlockAdded(this.world, pos, state);
                 }
 
-                if (block.hasTileEntity(state))
-                {
+                if (block.hasTileEntity(state)) {
                     TileEntity tileentity1 = this.getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
 
-                    if (tileentity1 == null)
-                    {
+                    if (tileentity1 == null) {
                         tileentity1 = block.createTileEntity(this.world, state);
                         this.world.setTileEntity(pos, tileentity1);
                     }
 
-                    if (tileentity1 != null)
-                    {
+                    if (tileentity1 != null) {
                         tileentity1.updateContainingBlockInfo();
                     }
                 }
@@ -426,42 +373,46 @@ public abstract class MixinChunk implements IChunk {
     }
 
     @Inject(method = "getLightFor", at = @At(value = "HEAD"))
-    private void procLightUpdatesNewLight1(EnumSkyBlock type, BlockPos pos, CallbackInfoReturnable<Integer> cir){
+    private void procLightUpdatesNewLight1(EnumSkyBlock type, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
         if (CarpetSettings.newLight)
             ((IWorld) this.world).getLightingEngine().procLightUpdates(type);
     }
 
-    @Redirect(method = "setLightFor", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"))
-    private void newLightInitSkyLight(Chunk chunk){
+    @Redirect(method = "setLightFor",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"))
+    private void newLightInitSkyLight(Chunk chunk) {
     }
 
-    @Inject(method = "setLightFor", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "setLightFor",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
+            locals = LocalCapture.CAPTURE_FAILHARD)
     private void insteadOfGenerateSkylightMap(EnumSkyBlock type, BlockPos pos, int value, CallbackInfo ci, int i, int j, int k, ExtendedBlockStorage extendedblockstorage) {
-        if (CarpetSettings.newLight){
-            LightingHooks.initSkylightForSection(this.world, (Chunk)(Object)this, extendedblockstorage); //Forge: generateSkylightMap produces the wrong result (See #3870)
-        }else{
+        if (CarpetSettings.newLight) {
+            LightingHooks.initSkylightForSection(this.world, (Chunk) (Object) this, extendedblockstorage); //Forge: generateSkylightMap produces the wrong result (See #3870)
+        } else {
             this.generateSkylightMap();
         }
     }
 
     @Inject(method = "getLightSubtracted", at = @At(value = "HEAD"))
-    private void procLightUpdatesNewLight2(BlockPos pos, int amount, CallbackInfoReturnable<Integer> cir){
+    private void procLightUpdatesNewLight2(BlockPos pos, int amount, CallbackInfoReturnable<Integer> cir) {
         if (CarpetSettings.newLight)
             ((IWorld) this.world).getLightingEngine().procLightUpdates();
     }
 
     @Inject(method = "onLoad", at = @At(value = "TAIL"))
-    private void onOnLoad(CallbackInfo ci){
-        if (CarpetSettings.newLight){
-            LightingHooks.onLoad(this.world, (Chunk)(Object)this);
+    private void onOnLoad(CallbackInfo ci) {
+        if (CarpetSettings.newLight) {
+            LightingHooks.onLoad(this.world, (Chunk) (Object) this);
         }
     }
 
-    @Redirect(method = "populate(Lnet/minecraft/world/gen/IChunkGenerator;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;checkLight()V"))
-    private void ifCheckLight(Chunk chunk){
-        if (CarpetSettings.newLight){
+    @Redirect(method = "populate(Lnet/minecraft/world/gen/IChunkGenerator;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;checkLight()V"))
+    private void ifCheckLight(Chunk chunk) {
+        if (CarpetSettings.newLight) {
             this.isTerrainPopulated = true;
-        }else{
+        } else {
             this.checkLight();
         }
     }
@@ -471,30 +422,24 @@ public abstract class MixinChunk implements IChunk {
      * @reason if statement around
      */
     @Overwrite
-    public void onTick(boolean skipRecheckGaps)
-    {
-        if (this.isGapLightingUpdated && this.world.provider.hasSkyLight() && !skipRecheckGaps)
-        {
+    public void onTick(boolean skipRecheckGaps) {
+        if (this.isGapLightingUpdated && this.world.provider.hasSkyLight() && !skipRecheckGaps) {
             this.recheckGaps(this.world.isRemote);
         }
 
         this.ticked = true;
 
         // [FCM] Newlight
-        if (!CarpetSettings.newLight)
-        {
-            if (!this.isLightPopulated && this.isTerrainPopulated)
-            {
+        if (!CarpetSettings.newLight) {
+            if (!this.isLightPopulated && this.isTerrainPopulated) {
                 this.checkLight();
             }
         }
 
-        while (!this.tileEntityPosQueue.isEmpty())
-        {
+        while (!this.tileEntityPosQueue.isEmpty()) {
             BlockPos blockpos = this.tileEntityPosQueue.poll();
 
-            if (this.getTileEntity(blockpos, Chunk.EnumCreateEntityType.CHECK) == null && this.getBlockState(blockpos).getBlock().hasTileEntity(this.getBlockState(blockpos)))
-            {
+            if (this.getTileEntity(blockpos, Chunk.EnumCreateEntityType.CHECK) == null && this.getBlockState(blockpos).getBlock().hasTileEntity(this.getBlockState(blockpos))) {
                 TileEntity tileentity = this.createNewTileEntity(blockpos);
                 this.world.setTileEntity(blockpos, tileentity);
                 this.world.markBlockRangeForRenderUpdate(blockpos, blockpos);
@@ -508,39 +453,33 @@ public abstract class MixinChunk implements IChunk {
     }
 
     @Override
-    public void setNeighborLightChecks(short[] lightChecks){
+    public void setNeighborLightChecks(short[] lightChecks) {
         neighborLightChecks = lightChecks;
     }
 
     @Override
-    public short getPendingNeighborLightInits(){
+    public short getPendingNeighborLightInits() {
         return this.pendingNeighborLightInits;
     }
 
     @Override
-    public void setPendingNeighborLightInits(short inits){
+    public void setPendingNeighborLightInits(short inits) {
         pendingNeighborLightInits = inits;
     }
 
     @Override
     // [FCM] Newlight -- new method added
-    public int getCachedLightFor(EnumSkyBlock type, BlockPos pos)
-    {
+    public int getCachedLightFor(EnumSkyBlock type, BlockPos pos) {
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
         ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
 
-        if (extendedblockstorage == NULL_BLOCK_STORAGE)
-        {
+        if (extendedblockstorage == NULL_BLOCK_STORAGE) {
             return this.canSeeSky(pos) ? type.defaultLightValue : 0;
-        }
-        else if (type == EnumSkyBlock.SKY)
-        {
+        } else if (type == EnumSkyBlock.SKY) {
             return !this.world.provider.hasSkyLight() ? 0 : extendedblockstorage.getSkyLight(i, j & 15, k);
-        }
-        else
-        {
+        } else {
             return type == EnumSkyBlock.BLOCK ? extendedblockstorage.getBlockLight(i, j & 15, k) : type.defaultLightValue;
         }
     }

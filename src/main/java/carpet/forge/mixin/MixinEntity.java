@@ -1,7 +1,7 @@
 package carpet.forge.mixin;
 
 import carpet.forge.helper.BlockRotator;
-import carpet.forge.utils.mixininterfaces.IMixinEntity;
+import carpet.forge.interfaces.IMixinEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.MathHelper;
@@ -16,22 +16,25 @@ public abstract class MixinEntity implements IMixinEntity {
 
     @Shadow public float rotationYaw;
 
-    public int getFire(){ return this.fire; }
+    public int getFire() {
+        return this.fire;
+    }
 
-    public String cm_name() { return "Other Entity"; }
+    public String cm_name() {
+        return "Other Entity";
+    }
 
     /**
      * @author DeadlyMC
      * @reason return type
      */
     @Overwrite
-    public EnumFacing getHorizontalFacing()
-    {
+    public EnumFacing getHorizontalFacing() {
         // [FCM] Start
-        if (BlockRotator.flippinEligibility((Entity)(Object)this))
-            return EnumFacing.byHorizontalIndex(MathHelper.floor((double)(this.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3).getOpposite();
+        if (BlockRotator.flippinEligibility((Entity) (Object) this))
+            return EnumFacing.byHorizontalIndex(MathHelper.floor((double) (this.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3).getOpposite();
         // [FCM] End
-        return EnumFacing.byHorizontalIndex(MathHelper.floor((double)(this.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3);
+        return EnumFacing.byHorizontalIndex(MathHelper.floor((double) (this.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3);
     }
 
 }

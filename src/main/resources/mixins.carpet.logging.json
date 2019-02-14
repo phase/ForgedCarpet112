@@ -1,5 +1,6 @@
 {
   "minVersion": "0.7.10",
+  "mixinPriority": 950,
   "package": "carpet.forge.logging.mixins",
   "refmap": "mixins.carpet.refmap.json",
   "target": "@env(DEFAULT)",

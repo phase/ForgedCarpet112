@@ -14,10 +14,11 @@ public abstract class MixinEntitySlime {
 
     @Shadow protected abstract int getAttackStrength();
 
-    @Redirect(method = "dealDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/monster/EntitySlime;canEntityBeSeen(Lnet/minecraft/entity/Entity;)Z"))
-    private boolean registerDamageAttacker(EntitySlime entitySlime, Entity entityIn){
+    @Redirect(method = "dealDamage", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/entity/monster/EntitySlime;canEntityBeSeen(Lnet/minecraft/entity/Entity;)Z"))
+    private boolean registerDamageAttacker(EntitySlime entitySlime, Entity entityIn) {
         return entitySlime.canEntityBeSeen(entityIn) &&
-                DamageReporter.register_damage_attacker((EntityLivingBase)entityIn, ((EntitySlime)(Object) this), (float)this.getAttackStrength());
+                DamageReporter.register_damage_attacker((EntityLivingBase) entityIn, ((EntitySlime) (Object) this), (float) this.getAttackStrength());
     }
 
 }

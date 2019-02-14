@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinPlayerList {
 
     @Inject(method = "playerLoggedIn", at = @At(value = "RETURN"))
-    public void onPlayerLoggedIn(EntityPlayerMP playerIn, CallbackInfo ci){
+    public void onPlayerLoggedIn(EntityPlayerMP playerIn, CallbackInfo ci) {
         CarpetMain.playerConnected(playerIn);
     }
 
     @Inject(method = "playerLoggedOut", at = @At(value = "HEAD"))
-    public void onPlayerLoggedOut(EntityPlayerMP playerIn, CallbackInfo ci){
+    public void onPlayerLoggedOut(EntityPlayerMP playerIn, CallbackInfo ci) {
         CarpetMain.playerDisconnected(playerIn);
     }
 }

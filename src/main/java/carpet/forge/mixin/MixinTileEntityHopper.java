@@ -33,7 +33,9 @@ public abstract class MixinTileEntityHopper extends TileEntityLockableLoot {
     @Shadow
     public abstract void setInventorySlotContents(int index, ItemStack stack);
 
-    public String cm_name() { return "Hopper"; }
+    public String cm_name() {
+        return "Hopper";
+    }
 
     private EnumDyeColor get_wool_pointing() {
         return WoolTool.getWoolColorAtPosition(getWorld(),

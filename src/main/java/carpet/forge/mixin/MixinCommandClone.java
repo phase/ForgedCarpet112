@@ -22,21 +22,17 @@ import java.util.Deque;
 import java.util.List;
 
 @Mixin(CommandClone.class)
-public abstract class MixinCommandClone extends CommandBase{
+public abstract class MixinCommandClone extends CommandBase {
 
     /**
      * @author DeadlyMC
      * @reason if statement arounds
      */
     @Overwrite
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
-        if (args.length < 9)
-        {
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+        if (args.length < 9) {
             throw new WrongUsageException("commands.clone.usage", new Object[0]);
-        }
-        else
-        {
+        } else {
             sender.setCommandStat(CommandResultStats.Type.AFFECTED_BLOCKS, 0);
             BlockPos blockpos = parseBlockPos(sender, args, 0, false);
             BlockPos blockpos1 = parseBlockPos(sender, args, 3, false);
@@ -46,54 +42,39 @@ public abstract class MixinCommandClone extends CommandBase{
             int i = structureboundingbox.getXSize() * structureboundingbox.getYSize() * structureboundingbox.getZSize();
 
             // [FCM] FillLimit - Changed 'i > 32768' TO 'i > CarpetSettings.getInt("fillLimit")'
-            if (i > CarpetSettings.getInt("fillLimit"))
-            {
+            if (i > CarpetSettings.getInt("fillLimit")) {
                 // [FCM] FillLimit - Replaced:
                 // throw new CommandException("commands.clone.tooManyBlocks", new Object[] {i, Integer.valueOf(32768)});
-                throw new CommandException("commands.clone.tooManyBlocks", new Object[] {i, Integer.valueOf(CarpetSettings.getInt("fillLimit"))});
-            }
-            else
-            {
+                throw new CommandException("commands.clone.tooManyBlocks", new Object[]{i, Integer.valueOf(CarpetSettings.getInt("fillLimit"))});
+            } else {
                 boolean flag = false;
                 Block block = null;
                 Predicate<IBlockState> predicate = null;
 
-                if ((args.length < 11 || !"force".equals(args[10]) && !"move".equals(args[10])) && structureboundingbox.intersectsWith(structureboundingbox1))
-                {
+                if ((args.length < 11 || !"force".equals(args[10]) && !"move".equals(args[10])) && structureboundingbox.intersectsWith(structureboundingbox1)) {
                     throw new CommandException("commands.clone.noOverlap", new Object[0]);
-                }
-                else
-                {
-                    if (args.length >= 11 && "move".equals(args[10]))
-                    {
+                } else {
+                    if (args.length >= 11 && "move".equals(args[10])) {
                         flag = true;
                     }
 
-                    if (structureboundingbox.minY >= 0 && structureboundingbox.maxY < 256 && structureboundingbox1.minY >= 0 && structureboundingbox1.maxY < 256)
-                    {
+                    if (structureboundingbox.minY >= 0 && structureboundingbox.maxY < 256 && structureboundingbox1.minY >= 0 && structureboundingbox1.maxY < 256) {
                         World world = sender.getEntityWorld();
 
-                        if (world.isAreaLoaded(structureboundingbox) && world.isAreaLoaded(structureboundingbox1))
-                        {
+                        if (world.isAreaLoaded(structureboundingbox) && world.isAreaLoaded(structureboundingbox1)) {
                             boolean flag1 = false;
 
-                            if (args.length >= 10)
-                            {
-                                if ("masked".equals(args[9]))
-                                {
+                            if (args.length >= 10) {
+                                if ("masked".equals(args[9])) {
                                     flag1 = true;
-                                }
-                                else if ("filtered".equals(args[9]))
-                                {
-                                    if (args.length < 12)
-                                    {
+                                } else if ("filtered".equals(args[9])) {
+                                    if (args.length < 12) {
                                         throw new WrongUsageException("commands.clone.usage", new Object[0]);
                                     }
 
                                     block = getBlockByText(sender, args[11]);
 
-                                    if (args.length >= 13)
-                                    {
+                                    if (args.length >= 13) {
                                         predicate = convertArgToBlockStatePredicate(block, args[12]);
                                     }
                                 }
@@ -105,34 +86,25 @@ public abstract class MixinCommandClone extends CommandBase{
                             Deque<BlockPos> deque = Lists.<BlockPos>newLinkedList();
                             BlockPos blockpos3 = new BlockPos(structureboundingbox1.minX - structureboundingbox.minX, structureboundingbox1.minY - structureboundingbox.minY, structureboundingbox1.minZ - structureboundingbox.minZ);
 
-                            for (int j = structureboundingbox.minZ; j <= structureboundingbox.maxZ; ++j)
-                            {
-                                for (int k = structureboundingbox.minY; k <= structureboundingbox.maxY; ++k)
-                                {
-                                    for (int l = structureboundingbox.minX; l <= structureboundingbox.maxX; ++l)
-                                    {
+                            for (int j = structureboundingbox.minZ; j <= structureboundingbox.maxZ; ++j) {
+                                for (int k = structureboundingbox.minY; k <= structureboundingbox.maxY; ++k) {
+                                    for (int l = structureboundingbox.minX; l <= structureboundingbox.maxX; ++l) {
                                         BlockPos blockpos4 = new BlockPos(l, k, j);
                                         BlockPos blockpos5 = blockpos4.add(blockpos3);
                                         IBlockState iblockstate = world.getBlockState(blockpos4);
 
-                                        if ((!flag1 || iblockstate.getBlock() != Blocks.AIR) && (block == null || iblockstate.getBlock() == block && (predicate == null || predicate.apply(iblockstate))))
-                                        {
+                                        if ((!flag1 || iblockstate.getBlock() != Blocks.AIR) && (block == null || iblockstate.getBlock() == block && (predicate == null || predicate.apply(iblockstate)))) {
                                             TileEntity tileentity = world.getTileEntity(blockpos4);
 
-                                            if (tileentity != null)
-                                            {
+                                            if (tileentity != null) {
                                                 NBTTagCompound nbttagcompound = tileentity.writeToNBT(new NBTTagCompound());
                                                 list1.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, nbttagcompound));
                                                 deque.addLast(blockpos4);
-                                            }
-                                            else if (!iblockstate.isFullBlock() && !iblockstate.isFullCube())
-                                            {
-                                                list2.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound)null));
+                                            } else if (!iblockstate.isFullBlock() && !iblockstate.isFullCube()) {
+                                                list2.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound) null));
                                                 deque.addFirst(blockpos4);
-                                            }
-                                            else
-                                            {
-                                                list.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound)null));
+                                            } else {
+                                                list.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound) null));
                                                 deque.addLast(blockpos4);
                                             }
                                         }
@@ -140,25 +112,21 @@ public abstract class MixinCommandClone extends CommandBase{
                                 }
                             }
 
-                            if (flag)
-                            {
-                                for (BlockPos blockpos6 : deque)
-                                {
+                            if (flag) {
+                                for (BlockPos blockpos6 : deque) {
                                     TileEntity tileentity1 = world.getTileEntity(blockpos6);
 
-                                    if (tileentity1 instanceof IInventory)
-                                    {
-                                        ((IInventory)tileentity1).clear();
+                                    if (tileentity1 instanceof IInventory) {
+                                        ((IInventory) tileentity1).clear();
                                     }
 
                                     // [FCM] FillUpdates
-                                    world.setBlockState(blockpos6, Blocks.BARRIER.getDefaultState(), 2 | (CarpetSettings.getBool("fillUpdates")?0:128));
+                                    world.setBlockState(blockpos6, Blocks.BARRIER.getDefaultState(), 2 | (CarpetSettings.getBool("fillUpdates") ? 0 : 128));
                                 }
 
-                                for (BlockPos blockpos7 : deque)
-                                {
+                                for (BlockPos blockpos7 : deque) {
                                     // [FCM] FillUpdates
-                                    world.setBlockState(blockpos7, Blocks.AIR.getDefaultState(), (CarpetSettings.getBool("fillUpdates")?3:131));
+                                    world.setBlockState(blockpos7, Blocks.AIR.getDefaultState(), (CarpetSettings.getBool("fillUpdates") ? 3 : 131));
                                 }
                             }
 
@@ -168,36 +136,30 @@ public abstract class MixinCommandClone extends CommandBase{
                             list3.addAll(list2);
                             List<CommandClone.StaticCloneData> list4 = Lists.<CommandClone.StaticCloneData>reverse(list3);
 
-                            for (CommandClone.StaticCloneData commandclone$staticclonedata : list4)
-                            {
+                            for (CommandClone.StaticCloneData commandclone$staticclonedata : list4) {
                                 TileEntity tileentity2 = world.getTileEntity(commandclone$staticclonedata.pos);
 
-                                if (tileentity2 instanceof IInventory)
-                                {
-                                    ((IInventory)tileentity2).clear();
+                                if (tileentity2 instanceof IInventory) {
+                                    ((IInventory) tileentity2).clear();
                                 }
 
                                 // [FCM] FillUpdates
-                                world.setBlockState(commandclone$staticclonedata.pos, Blocks.BARRIER.getDefaultState(), 2 | (CarpetSettings.getBool("fillUpdates")?0:128));
+                                world.setBlockState(commandclone$staticclonedata.pos, Blocks.BARRIER.getDefaultState(), 2 | (CarpetSettings.getBool("fillUpdates") ? 0 : 128));
                             }
 
                             i = 0;
 
-                            for (CommandClone.StaticCloneData commandclone$staticclonedata1 : list3)
-                            {
+                            for (CommandClone.StaticCloneData commandclone$staticclonedata1 : list3) {
                                 // [FCM] FillUpdates
-                                if (world.setBlockState(commandclone$staticclonedata1.pos, commandclone$staticclonedata1.blockState, 2 | (CarpetSettings.getBool("fillUpdates")?0:128)))
-                                {
+                                if (world.setBlockState(commandclone$staticclonedata1.pos, commandclone$staticclonedata1.blockState, 2 | (CarpetSettings.getBool("fillUpdates") ? 0 : 128))) {
                                     ++i;
                                 }
                             }
 
-                            for (CommandClone.StaticCloneData commandclone$staticclonedata2 : list1)
-                            {
+                            for (CommandClone.StaticCloneData commandclone$staticclonedata2 : list1) {
                                 TileEntity tileentity3 = world.getTileEntity(commandclone$staticclonedata2.pos);
 
-                                if (commandclone$staticclonedata2.nbt != null && tileentity3 != null)
-                                {
+                                if (commandclone$staticclonedata2.nbt != null && tileentity3 != null) {
                                     commandclone$staticclonedata2.nbt.setInteger("x", commandclone$staticclonedata2.pos.getX());
                                     commandclone$staticclonedata2.nbt.setInteger("y", commandclone$staticclonedata2.pos.getY());
                                     commandclone$staticclonedata2.nbt.setInteger("z", commandclone$staticclonedata2.pos.getZ());
@@ -208,21 +170,16 @@ public abstract class MixinCommandClone extends CommandBase{
                                 world.setBlockState(commandclone$staticclonedata2.pos, commandclone$staticclonedata2.blockState, 2);
                             }
 
-                            if (CarpetSettings.getBool("fillUpdates"))
-                            { // [FCM] FillUpdates - Extra indent start
-                                for (CommandClone.StaticCloneData commandclone$staticclonedata3 : list4)
-                                {
+                            if (CarpetSettings.getBool("fillUpdates")) { // [FCM] FillUpdates - Extra indent start
+                                for (CommandClone.StaticCloneData commandclone$staticclonedata3 : list4) {
                                     world.notifyNeighborsRespectDebug(commandclone$staticclonedata3.pos, commandclone$staticclonedata3.blockState.getBlock(), false);
                                 }
 
                                 List<NextTickListEntry> list5 = world.getPendingBlockUpdates(structureboundingbox, false);
 
-                                if (list5 != null)
-                                {
-                                    for (NextTickListEntry nextticklistentry : list5)
-                                    {
-                                        if (structureboundingbox.isVecInside(nextticklistentry.position))
-                                        {
+                                if (list5 != null) {
+                                    for (NextTickListEntry nextticklistentry : list5) {
+                                        if (structureboundingbox.isVecInside(nextticklistentry.position)) {
                                             BlockPos blockpos8 = nextticklistentry.position.add(blockpos3);
                                             world.scheduleBlockUpdate(blockpos8, nextticklistentry.getBlock(), (int) (nextticklistentry.scheduledTime - world.getWorldInfo().getWorldTotalTime()), nextticklistentry.priority);
                                         }
@@ -230,23 +187,16 @@ public abstract class MixinCommandClone extends CommandBase{
                                 }
                             } // [FCM] FillUpdates - Extra indent end
 
-                            if (i <= 0)
-                            {
+                            if (i <= 0) {
                                 throw new CommandException("commands.clone.failed", new Object[0]);
-                            }
-                            else
-                            {
+                            } else {
                                 sender.setCommandStat(CommandResultStats.Type.AFFECTED_BLOCKS, i);
-                                notifyCommandListener(sender, this, "commands.clone.success", new Object[] {i});
+                                notifyCommandListener(sender, this, "commands.clone.success", new Object[]{i});
                             }
-                        }
-                        else
-                        {
+                        } else {
                             throw new CommandException("commands.clone.outOfWorld", new Object[0]);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         throw new CommandException("commands.clone.outOfWorld", new Object[0]);
                     }
                 }

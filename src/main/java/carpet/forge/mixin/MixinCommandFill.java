@@ -20,33 +20,26 @@ import org.spongepowered.asm.mixin.Overwrite;
 import java.util.List;
 
 @Mixin(CommandFill.class)
-public abstract class MixinCommandFill extends CommandBase{
+public abstract class MixinCommandFill extends CommandBase {
 
     /**
      * @author DeadlyMC
      * @reason if statement arounds
      */
     @Overwrite
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
-        if (args.length < 7)
-        {
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+        if (args.length < 7) {
             throw new WrongUsageException("commands.fill.usage", new Object[0]);
-        }
-        else
-        {
+        } else {
             sender.setCommandStat(CommandResultStats.Type.AFFECTED_BLOCKS, 0);
             BlockPos blockpos = parseBlockPos(sender, args, 0, false);
             BlockPos blockpos1 = parseBlockPos(sender, args, 3, false);
             Block block = CommandBase.getBlockByText(sender, args[6]);
             IBlockState iblockstate;
 
-            if (args.length >= 8)
-            {
+            if (args.length >= 8) {
                 iblockstate = convertArgToBlockState(block, args[7]);
-            }
-            else
-            {
+            } else {
                 iblockstate = block.getDefaultState();
             }
 
@@ -55,22 +48,16 @@ public abstract class MixinCommandFill extends CommandBase{
             int i = (blockpos3.getX() - blockpos2.getX() + 1) * (blockpos3.getY() - blockpos2.getY() + 1) * (blockpos3.getZ() - blockpos2.getZ() + 1);
 
             // [FCM] FillLimit - Changed 'i > 32768' TO 'i > CarpetSettings.getInt("fillLimit")'
-            if (i > CarpetSettings.getInt("fillLimit"))
-            {
+            if (i > CarpetSettings.getInt("fillLimit")) {
                 // [FCM] FillLimit - Replaced:
                 // throw new CommandException("commands.fill.tooManyBlocks", new Object[] {i, Integer.valueOf(32768)});
-                throw new CommandException("commands.fill.tooManyBlocks", new Object[] {i, Integer.valueOf(CarpetSettings.getInt("fillLimit"))});
-            }
-            else if (blockpos2.getY() >= 0 && blockpos3.getY() < 256)
-            {
+                throw new CommandException("commands.fill.tooManyBlocks", new Object[]{i, Integer.valueOf(CarpetSettings.getInt("fillLimit"))});
+            } else if (blockpos2.getY() >= 0 && blockpos3.getY() < 256) {
                 World world = sender.getEntityWorld();
 
-                for (int j = blockpos2.getZ(); j <= blockpos3.getZ(); j += 16)
-                {
-                    for (int k = blockpos2.getX(); k <= blockpos3.getX(); k += 16)
-                    {
-                        if (!world.isBlockLoaded(new BlockPos(k, blockpos3.getY() - blockpos2.getY(), j)))
-                        {
+                for (int j = blockpos2.getZ(); j <= blockpos3.getZ(); j += 16) {
+                    for (int k = blockpos2.getX(); k <= blockpos3.getX(); k += 16) {
+                        if (!world.isBlockLoaded(new BlockPos(k, blockpos3.getY() - blockpos2.getY(), j))) {
                             throw new CommandException("commands.fill.outOfWorld", new Object[0]);
                         }
                     }
@@ -79,61 +66,42 @@ public abstract class MixinCommandFill extends CommandBase{
                 NBTTagCompound nbttagcompound = new NBTTagCompound();
                 boolean flag = false;
 
-                if (args.length >= 10 && block.hasTileEntity(iblockstate))
-                {
+                if (args.length >= 10 && block.hasTileEntity(iblockstate)) {
                     String s = buildString(args, 9);
 
-                    try
-                    {
+                    try {
                         nbttagcompound = JsonToNBT.getTagFromJson(s);
                         flag = true;
-                    }
-                    catch (NBTException nbtexception)
-                    {
-                        throw new CommandException("commands.fill.tagError", new Object[] {nbtexception.getMessage()});
+                    } catch (NBTException nbtexception) {
+                        throw new CommandException("commands.fill.tagError", new Object[]{nbtexception.getMessage()});
                     }
                 }
 
                 List<BlockPos> list = Lists.<BlockPos>newArrayList();
                 i = 0;
 
-                for (int l = blockpos2.getZ(); l <= blockpos3.getZ(); ++l)
-                {
-                    for (int i1 = blockpos2.getY(); i1 <= blockpos3.getY(); ++i1)
-                    {
-                        for (int j1 = blockpos2.getX(); j1 <= blockpos3.getX(); ++j1)
-                        {
+                for (int l = blockpos2.getZ(); l <= blockpos3.getZ(); ++l) {
+                    for (int i1 = blockpos2.getY(); i1 <= blockpos3.getY(); ++i1) {
+                        for (int j1 = blockpos2.getX(); j1 <= blockpos3.getX(); ++j1) {
                             BlockPos blockpos4 = new BlockPos(j1, i1, l);
 
-                            if (args.length >= 9)
-                            {
-                                if (!"outline".equals(args[8]) && !"hollow".equals(args[8]))
-                                {
-                                    if ("destroy".equals(args[8]))
-                                    {
+                            if (args.length >= 9) {
+                                if (!"outline".equals(args[8]) && !"hollow".equals(args[8])) {
+                                    if ("destroy".equals(args[8])) {
                                         world.destroyBlock(blockpos4, true);
-                                    }
-                                    else if ("keep".equals(args[8]))
-                                    {
-                                        if (!world.isAirBlock(blockpos4))
-                                        {
+                                    } else if ("keep".equals(args[8])) {
+                                        if (!world.isAirBlock(blockpos4)) {
                                             continue;
                                         }
-                                    }
-                                    else if ("replace".equals(args[8]) && !block.hasTileEntity(iblockstate) && args.length > 9)
-                                    {
+                                    } else if ("replace".equals(args[8]) && !block.hasTileEntity(iblockstate) && args.length > 9) {
                                         Block block1 = CommandBase.getBlockByText(sender, args[9]);
 
-                                        if (world.getBlockState(blockpos4).getBlock() != block1 || args.length > 10 && !"-1".equals(args[10]) && !"*".equals(args[10]) && !CommandBase.convertArgToBlockStatePredicate(block1, args[10]).apply(world.getBlockState(blockpos4)))
-                                        {
+                                        if (world.getBlockState(blockpos4).getBlock() != block1 || args.length > 10 && !"-1".equals(args[10]) && !"*".equals(args[10]) && !CommandBase.convertArgToBlockStatePredicate(block1, args[10]).apply(world.getBlockState(blockpos4))) {
                                             continue;
                                         }
                                     }
-                                }
-                                else if (j1 != blockpos2.getX() && j1 != blockpos3.getX() && i1 != blockpos2.getY() && i1 != blockpos3.getY() && l != blockpos2.getZ() && l != blockpos3.getZ())
-                                {
-                                    if ("hollow".equals(args[8]))
-                                    {
+                                } else if (j1 != blockpos2.getX() && j1 != blockpos3.getX() && i1 != blockpos2.getY() && i1 != blockpos3.getY() && l != blockpos2.getZ() && l != blockpos3.getZ()) {
+                                    if ("hollow".equals(args[8])) {
                                         world.setBlockState(blockpos4, Blocks.AIR.getDefaultState(), 2);
                                         list.add(blockpos4);
                                     }
@@ -144,23 +112,19 @@ public abstract class MixinCommandFill extends CommandBase{
 
                             TileEntity tileentity1 = world.getTileEntity(blockpos4);
 
-                            if (tileentity1 != null && tileentity1 instanceof IInventory)
-                            {
-                                ((IInventory)tileentity1).clear();
+                            if (tileentity1 != null && tileentity1 instanceof IInventory) {
+                                ((IInventory) tileentity1).clear();
                             }
 
                             // [FCM] FillUpdates
-                            if (world.setBlockState(blockpos4, iblockstate, 2 | (CarpetSettings.getBool("fillUpdates")?0:128)))
-                            {
+                            if (world.setBlockState(blockpos4, iblockstate, 2 | (CarpetSettings.getBool("fillUpdates") ? 0 : 128))) {
                                 list.add(blockpos4);
                                 ++i;
 
-                                if (flag)
-                                {
+                                if (flag) {
                                     TileEntity tileentity = world.getTileEntity(blockpos4);
 
-                                    if (tileentity != null)
-                                    {
+                                    if (tileentity != null) {
                                         nbttagcompound.setInteger("x", blockpos4.getX());
                                         nbttagcompound.setInteger("y", blockpos4.getY());
                                         nbttagcompound.setInteger("z", blockpos4.getZ());
@@ -172,27 +136,20 @@ public abstract class MixinCommandFill extends CommandBase{
                     }
                 }
 
-                if (CarpetSettings.getBool("fillUpdates"))
-                { // [FCM] FillUpdates - Extra indent start
-                    for (BlockPos blockpos5 : list)
-                    {
+                if (CarpetSettings.getBool("fillUpdates")) { // [FCM] FillUpdates - Extra indent start
+                    for (BlockPos blockpos5 : list) {
                         Block block2 = world.getBlockState(blockpos5).getBlock();
                         world.notifyNeighborsRespectDebug(blockpos5, block2, false);
                     }
                 } // [FCM] FillUpdates - Extra indent end
 
-                if (i <= 0)
-                {
+                if (i <= 0) {
                     throw new CommandException("commands.fill.failed", new Object[0]);
-                }
-                else
-                {
+                } else {
                     sender.setCommandStat(CommandResultStats.Type.AFFECTED_BLOCKS, i);
-                    notifyCommandListener(sender, this, "commands.fill.success", new Object[] {i});
+                    notifyCommandListener(sender, this, "commands.fill.success", new Object[]{i});
                 }
-            }
-            else
-            {
+            } else {
                 throw new CommandException("commands.fill.outOfWorld", new Object[0]);
             }
         }

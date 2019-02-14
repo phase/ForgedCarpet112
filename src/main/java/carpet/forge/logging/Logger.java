@@ -3,7 +3,6 @@ package carpet.forge.logging;
 import carpet.forge.CarpetMain;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.ITextComponent;
 
 import java.util.Arrays;
@@ -11,13 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class Logger
-{
+public class Logger {
     // The set of subscribed and online players.
     private Map<String, String> subscribedOnlinePlayers;
 
     // The set of subscribed and offline players.
-    private Map<String,String> subscribedOfflinePlayers;
+    private Map<String, String> subscribedOfflinePlayers;
 
     // The logName of this log. Gets prepended to logged messages.
     private String logName;
@@ -25,14 +23,13 @@ public class Logger
     private String default_option;
 
     private String[] options;
-    
+
     private LogHandler defaultHandler;
-    
+
     // The map of player names to the log handler used
     private Map<String, LogHandler> handlers;
-    
-    public Logger(String logName, String def, String [] options, LogHandler defaultHandler)
-    {
+
+    public Logger(String logName, String def, String[] options, LogHandler defaultHandler) {
         subscribedOnlinePlayers = new HashMap<>();
         subscribedOfflinePlayers = new HashMap<>();
         this.logName = logName;
@@ -42,30 +39,25 @@ public class Logger
         handlers = new HashMap<>();
     }
 
-    public String getDefault()
-    {
+    public String getDefault() {
         return default_option;
     }
-    public String [] getOptions()
-    {
+
+    public String[] getOptions() {
         return options;
     }
-    public String getLogName()
-    {
+
+    public String getLogName() {
         return logName;
     }
 
     /**
      * Subscribes the player with the given logName to the logger.
      */
-    public void addPlayer(String playerName, String option, LogHandler handler)
-    {
-        if (playerFromName(playerName) != null)
-        {
+    public void addPlayer(String playerName, String option, LogHandler handler) {
+        if (playerFromName(playerName) != null) {
             subscribedOnlinePlayers.put(playerName, option);
-        }
-        else
-        {
+        } else {
             subscribedOfflinePlayers.put(playerName, option);
         }
         if (handler == null)
@@ -78,25 +70,22 @@ public class Logger
     /**
      * Unsubscribes the player with the given logName from the logger.
      */
-    public void removePlayer(String playerName)
-    {
+    public void removePlayer(String playerName) {
         handlers.getOrDefault(playerName, defaultHandler).onRemovePlayer(playerName);
         subscribedOnlinePlayers.remove(playerName);
         subscribedOfflinePlayers.remove(playerName);
         handlers.remove(playerName);
         LoggerRegistry.setAccess(this);
     }
-    
+
     /**
      * Sets the LogHandler for the given player
      */
-    public void setHandler(String playerName, LogHandler newHandler)
-    {
+    public void setHandler(String playerName, LogHandler newHandler) {
         if (newHandler == null)
             newHandler = defaultHandler;
         LogHandler oldHandler = handlers.getOrDefault(playerName, defaultHandler);
-        if (oldHandler != newHandler)
-        {
+        if (oldHandler != newHandler) {
             oldHandler.onRemovePlayer(playerName);
             handlers.put(playerName, newHandler);
             newHandler.onAddPlayer(playerName);
@@ -106,8 +95,7 @@ public class Logger
     /**
      * Returns true if there are any online subscribers for this log.
      */
-    public boolean hasOnlineSubscribers()
-    {
+    public boolean hasOnlineSubscribers() {
         return subscribedOnlinePlayers.size() > 0;
     }
 
@@ -116,16 +104,19 @@ public class Logger
      * will repeat invocation for players that share the same option
      */
     @FunctionalInterface
-    public interface lMessage { ITextComponent[] get(String playerOption, EntityPlayer player);}
-    public void logNoCommand(lMessage messagePromise) {log(messagePromise, (Object[])null);}
-    public void log(lMessage messagePromise, Object... commandParams)
-    {
-        for (Map.Entry<String,String> en : subscribedOnlinePlayers.entrySet())
-        {
+    public interface lMessage {
+        ITextComponent[] get(String playerOption, EntityPlayer player);
+    }
+
+    public void logNoCommand(lMessage messagePromise) {
+        log(messagePromise, (Object[]) null);
+    }
+
+    public void log(lMessage messagePromise, Object... commandParams) {
+        for (Map.Entry<String, String> en : subscribedOnlinePlayers.entrySet()) {
             EntityPlayerMP player = playerFromName(en.getKey());
-            if (player != null)
-            {
-                ITextComponent[] messages = messagePromise.get(en.getValue(),player);
+            if (player != null) {
+                ITextComponent[] messages = messagePromise.get(en.getValue(), player);
                 if (messages != null)
                     sendPlayerMessage(en.getKey(), player, messages, commandParams);
             }
@@ -137,20 +128,22 @@ public class Logger
      * and served the same way to all other players subscribed to the same option
      */
     @FunctionalInterface
-    public interface lMessageIgnorePlayer { ITextComponent[] get(String playerOption);}
-    public void logNoCommand(lMessageIgnorePlayer messagePromise) {log(messagePromise, (Object[])null);}
-    public void log(lMessageIgnorePlayer messagePromise, Object... commandParams)
-    {
+    public interface lMessageIgnorePlayer {
+        ITextComponent[] get(String playerOption);
+    }
+
+    public void logNoCommand(lMessageIgnorePlayer messagePromise) {
+        log(messagePromise, (Object[]) null);
+    }
+
+    public void log(lMessageIgnorePlayer messagePromise, Object... commandParams) {
         Map<String, ITextComponent[]> cannedMessages = new HashMap<>();
-        for (Map.Entry<String,String> en : subscribedOnlinePlayers.entrySet())
-        {
+        for (Map.Entry<String, String> en : subscribedOnlinePlayers.entrySet()) {
             EntityPlayerMP player = playerFromName(en.getKey());
-            if (player != null)
-            {
+            if (player != null) {
                 String option = en.getValue();
-                if (!cannedMessages.containsKey(option))
-                {
-                    cannedMessages.put(option,messagePromise.get(option));
+                if (!cannedMessages.containsKey(option)) {
+                    cannedMessages.put(option, messagePromise.get(option));
                 }
                 ITextComponent[] messages = cannedMessages.get(option);
                 if (messages != null)
@@ -158,66 +151,60 @@ public class Logger
             }
         }
     }
+
     /**
      * guarantees that message is evaluated once, so independent from the player and chosen option
      */
-    public void logNoCommand(Supplier<ITextComponent[]> messagePromise) {log(messagePromise, (Object[])null);}
-    public void log(Supplier<ITextComponent[]> messagePromise, Object... commandParams)
-    {
+    public void logNoCommand(Supplier<ITextComponent[]> messagePromise) {
+        log(messagePromise, (Object[]) null);
+    }
+
+    public void log(Supplier<ITextComponent[]> messagePromise, Object... commandParams) {
         ITextComponent[] cannedMessages = null;
-        for (Map.Entry<String,String> en : subscribedOnlinePlayers.entrySet())
-        {
+        for (Map.Entry<String, String> en : subscribedOnlinePlayers.entrySet()) {
             EntityPlayerMP player = playerFromName(en.getKey());
-            if (player != null)
-            {
+            if (player != null) {
                 if (cannedMessages == null) cannedMessages = messagePromise.get();
                 sendPlayerMessage(en.getKey(), player, cannedMessages, commandParams);
             }
         }
     }
 
-    public void sendPlayerMessage(String playerName, EntityPlayerMP player, ITextComponent[] messages, Object[] commandParams)
-    {
+    public void sendPlayerMessage(String playerName, EntityPlayerMP player, ITextComponent[] messages, Object[] commandParams) {
         handlers.getOrDefault(playerName, defaultHandler).handle(player, messages, commandParams);
     }
 
     /**
      * Gets the {@code EntityPlayer} instance for a player given their UUID. Returns null if they are offline.
      */
-    protected EntityPlayerMP playerFromName(String name)
-    {
+    protected EntityPlayerMP playerFromName(String name) {
         EntityPlayerMP tmp = CarpetMain.minecraft_server.getPlayerList().getPlayerByUsername(name);
         return tmp;
     }
 
     // ----- Event Handlers ----- //
 
-    public void onPlayerConnect(EntityPlayer player)
-    {
+    public void onPlayerConnect(EntityPlayer player) {
         // If the player was subscribed to the log and offline, move them to the set of online subscribers.
         String playerName = player.getName();
-        if (subscribedOfflinePlayers.containsKey(playerName))
-        {
+        if (subscribedOfflinePlayers.containsKey(playerName)) {
             subscribedOnlinePlayers.put(playerName, subscribedOfflinePlayers.get(playerName));
             subscribedOfflinePlayers.remove(playerName);
         }
         LoggerRegistry.setAccess(this);
     }
 
-    public void onPlayerDisconnect(EntityPlayer player)
-    {
+    public void onPlayerDisconnect(EntityPlayer player) {
         // If the player was subscribed to the log, move them to the set of offline subscribers.
         String playerName = player.getName();
-        if (subscribedOnlinePlayers.containsKey(playerName))
-        {
+        if (subscribedOnlinePlayers.containsKey(playerName)) {
             subscribedOfflinePlayers.put(playerName, subscribedOnlinePlayers.get(playerName));
             subscribedOnlinePlayers.remove(playerName);
         }
         LoggerRegistry.setAccess(this);
     }
 
-    public String getAcceptedOption(String arg)
-    {
+    public String getAcceptedOption(String arg) {
         if (options != null && Arrays.asList(options).contains(arg)) return arg;
         return null;
     }

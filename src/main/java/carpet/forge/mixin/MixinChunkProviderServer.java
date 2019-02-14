@@ -1,8 +1,8 @@
 package carpet.forge.mixin;
 
 import carpet.forge.CarpetSettings;
+import carpet.forge.interfaces.IWorld;
 import carpet.forge.utils.TickingArea;
-import carpet.forge.utils.mixininterfaces.IWorld;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
@@ -13,12 +13,11 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Set;
 
-@Mixin(ChunkProviderServer.class)
+@Mixin(value = ChunkProviderServer.class, priority = 1050)
 public abstract class MixinChunkProviderServer {
 
     @Shadow @Final public WorldServer world;
@@ -26,13 +25,14 @@ public abstract class MixinChunkProviderServer {
     @Shadow @Final public Set<Long> droppedChunks;
 
     @Inject(method = "saveChunks", at = @At(value = "HEAD"))
-    private void procLightUpdatesNewLight1(boolean all, CallbackInfoReturnable<Boolean> cir){
+    private void procLightUpdatesNewLight1(boolean all, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetSettings.newLight)
             ((IWorld) this.world).getLightingEngine().procLightUpdates();
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Ljava/util/Set;iterator()Ljava/util/Iterator;"))
-    private void procLightUpdatesNewLight2(CallbackInfoReturnable<Boolean> cir){
+    @Inject(method = "tick", at = @At(value = "INVOKE", shift = At.Shift.AFTER,
+            target = "Ljava/util/Set;iterator()Ljava/util/Iterator;"))
+    private void procLightUpdatesNewLight2(CallbackInfoReturnable<Boolean> cir) {
         if (CarpetSettings.newLight)
             ((IWorld) this.world).getLightingEngine().procLightUpdates();
     }
@@ -42,15 +42,13 @@ public abstract class MixinChunkProviderServer {
      * @reason TickingAreas and DisableSpawnChunks rule
      */
     @Overwrite
-    public void queueUnload(Chunk chunkIn)
-    {
+    public void queueUnload(Chunk chunkIn) {
         boolean canDrop = world.provider.canDropChunk(chunkIn.x, chunkIn.z);
         if (CarpetSettings.getBool("disableSpawnChunks"))
             canDrop = true;
         if (CarpetSettings.getBool("tickingAreas"))
             canDrop &= !TickingArea.isTickingChunk(world, chunkIn.x, chunkIn.z);
-        if (canDrop)
-        {
+        if (canDrop) {
             this.droppedChunks.add(Long.valueOf(ChunkPos.asLong(chunkIn.x, chunkIn.z)));
             chunkIn.unloadQueued = true;
         }

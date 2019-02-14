@@ -1,6 +1,5 @@
 package carpet.forge.commands;
 
-import carpet.forge.CarpetMain;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -29,12 +28,9 @@ public class CommandGMS extends CarpetCommandBase {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
         if (!command_enabled("commandCameramode", sender)) return;
-        if (args.length > 0)
-        {
+        if (args.length > 0) {
             throw new WrongUsageException(getUsage(sender), new Object[0]);
-        }
-        else
-        {
+        } else {
             GameType gametype = GameType.parseGameTypeWithDefault("survival", GameType.NOT_SET);
             EntityPlayer entityplayer = getCommandSenderAsPlayer(sender);
             entityplayer.setGameType(gametype);
@@ -44,7 +40,8 @@ public class CommandGMS extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
         return Collections.emptyList();
     }
 

@@ -1,6 +1,5 @@
 package carpet.forge.commands;
 
-import carpet.forge.CarpetMain;
 import carpet.forge.CarpetSettings;
 import carpet.forge.utils.BlockInfo;
 import net.minecraft.command.CommandException;
@@ -30,8 +29,7 @@ public class CommandBlockInfo extends CarpetCommandBase {
 
         if (!command_enabled("commandBlockInfo", sender)) return;
 
-        if (args.length != 3)
-        {
+        if (args.length != 3) {
             throw new WrongUsageException(getUsage(sender), new Object[0]);
         }
         BlockPos blockpos = parseBlockPos(sender, args, 0, false);
@@ -41,14 +39,13 @@ public class CommandBlockInfo extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
 
-        if (!CarpetSettings.getBool("commandBlockInfo"))
-        {
+        if (!CarpetSettings.getBool("commandBlockInfo")) {
             return Collections.<String>emptyList();
         }
-        if (args.length > 0 && args.length <= 3)
-        {
+        if (args.length > 0 && args.length <= 3) {
             return getTabCompletionCoordinate(args, 0, targetPos);
         }
         return Collections.<String>emptyList();

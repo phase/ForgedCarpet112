@@ -1,6 +1,5 @@
 package carpet.forge.commands;
 
-import carpet.forge.CarpetMain;
 import carpet.forge.CarpetSettings;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -31,14 +30,10 @@ public class CommandGMC extends CarpetCommandBase {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
         if (!command_enabled("commandCameramode", sender)) return;
-        if (args.length > 0)
-        {
+        if (args.length > 0) {
             throw new WrongUsageException(getUsage(sender), new Object[0]);
-        }
-        else
-        {
-            if (!CarpetSettings.getBool("commandCameramode"))
-            {
+        } else {
+            if (!CarpetSettings.getBool("commandCameramode")) {
                 notifyCommandListener(sender, this, "Quick gamemode switching is disabled");
             }
             GameType gametype = GameType.parseGameTypeWithDefault("spectator", GameType.NOT_SET);
@@ -50,7 +45,8 @@ public class CommandGMC extends CarpetCommandBase {
     }
 
     @Override
-    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
+                                          @Nullable BlockPos targetPos) {
         return Collections.emptyList();
     }
 

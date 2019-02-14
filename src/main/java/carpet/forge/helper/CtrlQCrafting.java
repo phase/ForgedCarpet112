@@ -9,19 +9,16 @@ import net.minecraft.item.ItemStack;
 import java.util.List;
 
 public class CtrlQCrafting {
-    public static ItemStack dropAllCrafting(EntityPlayer playerIn, int index, List<Slot> inventorySlotsParam)
-    {
+    public static ItemStack dropAllCrafting(EntityPlayer playerIn, int index, List<Slot> inventorySlotsParam) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = inventorySlotsParam.get(index);
 
-        if (slot != null && slot.getHasStack())
-        {
+        if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
             EntityEquipmentSlot entityequipmentslot = EntityLiving.getSlotForItemStack(itemstack);
 
-            if (index == 0)
-            {
+            if (index == 0) {
                 playerIn.dropItem(itemstack, true);
 
                 itemstack1.setCount(0);
@@ -29,15 +26,13 @@ public class CtrlQCrafting {
                 slot.onSlotChange(itemstack1, itemstack);
             }
 
-            if (itemstack1.getCount() == itemstack.getCount())
-            {
+            if (itemstack1.getCount() == itemstack.getCount()) {
                 return ItemStack.EMPTY;
             }
 
             ItemStack itemstack2 = slot.onTake(playerIn, itemstack1);
 
-            if (index == 0)
-            {
+            if (index == 0) {
                 playerIn.dropItem(itemstack2, false);
             }
         }
